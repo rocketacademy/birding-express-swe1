@@ -1,0 +1,40 @@
+html {
+  width: 100%;
+  height: 100%;
+}
+
+#entry-form-body {
+  background: url("/main-background-pic.jpeg") no-repeat;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 100%;
+  background-size: 100% 100%;
+}
+
+#single-note-body {
+  background: url("/single-note.jpeg") no-repeat;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 100%;
+  background-size: 100% 100%;
+}
+
+.entry-form-container {
+  overflow: auto;
+  margin-bottom: 30px;
+  background: white;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px 0 black;
+}
+
+#single-note-text {
+  overflow: auto;
+  margin-bottom: 30px;
+  background: white;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px 0 black;
+}

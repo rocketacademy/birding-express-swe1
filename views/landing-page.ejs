@@ -1,0 +1,14 @@
+    <%- include ('partials/head') %>
+    <title>Bird Watching Main Page</title>
+  </head>
+
+  <body>
+    <div class="container">
+    <% for (let i = 0; i < allNotes.length; i += 1) { %> 
+            <p><a href="#"><%= allNotes[i].date %></a></p>
+            <p>><%= allNotes[i].behaviour %></p>
+            <p>><%= allNotes[i].flock_size %></p>
+              <br>
+              <% } %>
+      </div>
+    <%- include ('partials/footer') %>
