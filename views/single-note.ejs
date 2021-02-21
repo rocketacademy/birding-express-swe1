@@ -5,12 +5,20 @@
   <body id="single-note-body">
 
     <div class="container" id="single-note-text">
-    <% Object.keys(oneNote).forEach((inputField) => { %>
-          <div class="row" >  
-      <div class="col-md-2" id="category"> <%= inputField %>:</div>
-      <div class="col-md-10" id="response"> <%= oneNote[inputField] %></div>
+    <% Object.keys(eachNote).forEach((inputField) => { %>
+      <% if (inputField === 'email') { %>
+      <div class="row" >  
+      <div class="col-md-2"> <%= 'author' %>:</div>
+      <div class="col-md-10"> <%= eachNote[inputField] %></div>
       </div>
       <br>
+      <% } else { %>
+          <div class="row" >  
+      <div class="col-md-2"> <%= inputField %>:</div>
+      <div class="col-md-10"> <%= eachNote[inputField] %></div>
+      </div>
+      <br>
+      <% }; %>
       <% }); %>
       </div>
     <%- include ('partials/footer') %>

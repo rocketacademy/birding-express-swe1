@@ -22,21 +22,21 @@
 </nav>
 
     <div class="container entry-form" >
-      <h2>Bird Sighting Entry</h2>
-      <p>Tell us what you saw!
-       </p>
+      
     
       
       <div class="row justify-content-center align-items-center" style="height: 80vh">
         <div class="col-12 col-md-10">
-        
-    <form class="entry-form-container" action="/note" method="POST" >
+        <h2>Edit Form</h2>
+      <p>Need to change something?
+       </p>
+    <form class="entry-form-container" action="/note/<%= noteInfo.id %>/edit?_method=PUT" method="POST" >
   
         <div class="form group">
           <div class="row">
             <div class="col-12">
         <label for="behaviour">Behaviour: </label>
-        <textarea class="form-control" rows="5" name="behaviour" id="behaviour"></textarea>
+        <textarea class="form-control" rows="5" name="behaviour" id="behaviour"><%= noteInfo.behaviour %></textarea>
         </div>
         </div>
       </div>
@@ -45,13 +45,13 @@
               <div class="col">
       <div class="form-group">
         <label for="flock_size">Flock size: </label>
-        <input class="form-control" name="flock_size" id="flock_size">
+        <input class="form-control" name="flock_size" id="flock_size" value="<%= noteInfo.flock_size %>"> 
       </div>
       </div>
         <div class="col">
       <div class="form-group">
       <label for="date">Date: </label>
-      <input class="form-control" type="date" name="date" id="date" min="2015/01/01">
+      <input class="form-control" type="text" name="date" id="date" value="<%= noteInfo.date%>">
       </div>
       </div>
       </div>
@@ -60,9 +60,13 @@
         <div class="row">
           <div class="col-8 justify-content-start">
         <label for="species_id">Species: </label>
-        <select class="form-control" name="species_id" id="species_id">
-          <% species.forEach((type) => { %>
+        <select class="form-control" name="species_id" id="species_id" >
+          <% data.species.forEach((type) => { %>
+            <% if (type.id === noteInfo.species_id) { %>
+              <option value="<%= type.id %>" selected><%= type.name %></option>
+            <% } else { %>
             <option value="<%= type.id %>"><%= type.name %></option>
+          <% } %>
           <% }) %>
         </select>
         </div>

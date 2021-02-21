@@ -3,13 +3,16 @@ html {
   height: 100%;
 }
 
+.entry-form {
+  padding-top: 50px;
+}
+
 #entry-form-body {
-  background: url("/main-background-pic.jpeg") no-repeat;
-  display: flex;
-  align-items: center;
-  width: 100%;
-  min-height: 100%;
-  background-size: 100% 100%;
+  height: 100vh;
+}
+
+.entry-pagej {
+  background-color: transparent;
 }
 
 #single-note-body {
@@ -22,12 +25,12 @@ html {
 }
 
 .entry-form-container {
-  overflow: auto;
   margin-bottom: 30px;
   background: white;
   padding: 30px;
   border-radius: 10px;
-  box-shadow: 0 0 10px 0 black;
+  /* box-shadow: 0 0 10px 0 black; */
+  border: solid black 1px;
 }
 
 #single-note-text {
@@ -37,4 +40,17 @@ html {
   padding: 30px;
   border-radius: 10px;
   box-shadow: 0 0 10px 0 black;
+}
+
+.with-heading {
+  height: 100vh;
+}
+
+.sign-up {
+  background: url("single-note-bg.jpeg") no-repeat center center fixed;
+  background-size: cover;
+}
+
+.landing-page {
+  padding-top: 50px;
 }
