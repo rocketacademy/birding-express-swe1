@@ -2,6 +2,9 @@ import express from 'express';
 import pg from 'pg';
 import methodOverride from 'method-override';
 import cookieParser from 'cookie-parser';
+import jsSHA from 'jssha';
+
+const SALT = 'birds are awesome';
 
 const { Pool } = pg;
 
@@ -133,7 +136,15 @@ app.get('/note/:id', (req, res) => {
 // displays all the entries in the database
 app.get('/', (req, res) => {
   console.log('logged in', req.cookies.loggedIn);
-  if (!req.cookies.loggedIn) {
+  console.log('userid', req.body.id);
+
+  const shaObj = new jsSHA('SHA-512', 'TEXT', { encoding: 'UTF8' });
+  const unhashedCookieString = `${req.cookies.userId}-${SALT}`;
+  shaObj.update(unhashedCookieString);
+  const hashedCookieString = shaObj.getHash('HEX');
+  console.log('logged in hash', req.cookies.loggedInHash);
+  console.log('hashedCookieString', hashedCookieString);
+  if (req.cookies.loggedInHash !== hashedCookieString) {
     res.status(403).send('please log in');
   } else {
     const allQuery = 'SELECT notes.id, notes.behaviour, notes.flock_size, notes.user_id, notes.species_id, notes.date, species.name FROM notes INNER JOIN species ON notes.species_id = species.id';
@@ -143,7 +154,9 @@ app.get('/', (req, res) => {
       } else {
         console.log(allQueryResult.rows);
         const allNotes = allQueryResult.rows;
-        res.render('landing-page', { allNotes });
+        const { loggedIn } = req.cookies;
+        console.log('logged in?', loggedIn);
+        res.render('landing-page', { allNotes, loggedIn });
       }
     });
   }
@@ -180,8 +193,11 @@ app.get('/note/:id/edit', (req, res) => {
                 console.log('error', editBehaviourQueryError);
               } else {
                 console.log(editBehaviourQueryResult.rows);
+                const behaviourArray = [];
                 const behaviours = editBehaviourQueryResult.rows;
-
+                behaviours.forEach((behaviour) => {
+                  behaviourArray.push(behaviour.action);
+                });
                 const displayBehavioursQuery = 'SELECT * FROM behaviour';
 
                 pool.query(displayBehavioursQuery, (displayBehavioursQueryError, displayBehavioursQueryResult) => {
@@ -189,9 +205,10 @@ app.get('/note/:id/edit', (req, res) => {
                     console.log('error', displayBehavioursQueryError);
                   } else {
                     console.log(displayBehavioursQueryResult.rows);
+                    const allBehaviour = displayBehavioursQueryResult.rows;
 
                     res.render('edit', {
-                      noteInfo, data, behaviours, allBehaviour,
+                      noteInfo, data, behaviourArray, allBehaviour,
                     });
                   }
                 });
@@ -254,27 +271,35 @@ app.delete('/note/:id/delete', (req, res) => {
 
 // displays the sign up form
 app.get('/signup', (req, res) => {
-  res.render('sign-up');
+  const { loggedIn } = req.cookies;
+  res.render('sign-up', { loggedIn });
 });
 
 // submits the data in the sign up form
 app.post('/signup', (req, res) => {
+  const shaObj = new jsSHA('SHA-512', 'TEXT', { encoding: 'UTF8' });
+
+  shaObj.update(req.body.password);
+
+  const hashedPassword = shaObj.getHash('HEX');
+
   const newUserQuery = 'INSERT INTO users (email, password) VALUES ($1, $2)';
-  const inputData = [req.body.email, req.body.password];
+  const inputData = [req.body.email, hashedPassword];
 
   pool.query(newUserQuery, inputData, (newUserQueryError, newUserQueryResult) => {
     if (newUserQueryError) {
       console.log('error', newUserQueryError);
     } else {
       console.log(newUserQueryResult.rows);
-      res.redirect('/');
+      res.redirect('/login');
     }
   });
 });
 
 // displays the login form
 app.get('/login', (req, res) => {
-  res.render('login');
+  const { loggedIn } = req.cookies;
+  res.render('login', { loggedIn });
 });
 
 // submits the login data
@@ -286,13 +311,25 @@ app.post('/login', (req, res) => {
       return;
     }
 
-    if (emailQueryResult === 0) {
+    if (emailQueryResult.rows.length === 0) {
       res.status(403).send('not successful');
       return;
     }
 
-    if (emailQueryResult.rows[0].password === req.body.password) {
+    console.log('password', emailQueryResult.rows[0].password);
+
+    const shaObj = new jsSHA('SHA-512', 'TEXT', { encoding: 'UTF8' });
+    shaObj.update(req.body.password);
+    const hashedPassword = shaObj.getHash('HEX');
+    console.log(hashedPassword);
+    if (emailQueryResult.rows[0].password === hashedPassword) {
       res.cookie('loggedIn', true);
+
+      const shaObj1 = new jsSHA('SHA-512', 'TEXT', { encoding: 'UTF8' });
+      const unhashedCookieString = `${emailQueryResult.rows[0].id}-${SALT}`;
+      shaObj1.update(unhashedCookieString);
+      const hashedCookieString = shaObj1.getHash('HEX');
+      res.cookie('loggedInHash', hashedCookieString);
       res.cookie('userId', emailQueryResult.rows[0].id);
       res.redirect('/');
     } else {

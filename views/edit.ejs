@@ -13,8 +13,8 @@
   </button>
   <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
     <div class="navbar-nav">
-      <a class="nav-item nav-link" href="#">Home </a>
-      <a class="nav-item nav-link" href="#">Entry form</a>
+      <a class="nav-item nav-link" href="/login">Log in </a>
+      <a class="nav-item nav-link" href="/note">Entry form</a>
       <form action="/logout?_method=DELETE" method="POST">
         <button type="submit" class="btn btn-outline-dark btn btn-md">Logout</button>
       </form>
@@ -33,30 +33,17 @@
       <p>Need to change something?
        </p>
     <form class="entry-form-container" action="/note/<%= noteInfo.id %>/edit?_method=PUT" method="POST" >
-  
-        <div class="form group">
-          <div class="row">
-            <div class="col-12">
-        <label for="behaviour">Behaviour: </label>
-        <textarea class="form-control" rows="5" name="behaviour" id="behaviour"><%= noteInfo.behaviour %></textarea>
-        </div>
-        </div>
-      </div>
 
       
-        <% behaviours.forEach((behaviour) => { %>
-       <div class="form-check form-check-inline">
-  <input class="form-check-input" type="checkbox" name="behaviour" value="<%= behaviour.action %>" id="behaviour" checked>
-  
-  <label class="form-check-label" for="behaviour">
-    <%= behaviour.action %>
-  </label>
-  </div>
-  <% }) %>
+        
 <% allBehaviour.forEach((behaviour) => { %>
+ 
   <div class="form-check form-check-inline">
+     <% if (behaviourArray.includes(behaviour.action)) { %>
+  <input class="form-check-input" type="checkbox" name="behaviour" value="<%= behaviour.action %>" id="behaviour" checked>
+     <% } else { %>
   <input class="form-check-input" type="checkbox" name="behaviour" value="<%= behaviour.action %>" id="behaviour">
-
+    <% } %>
   <label class="form-check-label" for="behaviour">
     <%= behaviour.action %>
   </label>

@@ -10,10 +10,12 @@
   </button>
   <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
     <div class="navbar-nav">
-      <a class="nav-item nav-link" href="#">Home </a>
-      <a class="nav-item nav-link" href="#">Entry form</a>
+      <a class="nav-item nav-link" href="/login">Log in </a>
+      <a class="nav-item nav-link" href="/note">Entry form</a>
       <form action="/logout?_method=DELETE" method="POST">
+        <% if (loggedIn) { %>
         <button type="submit" class="btn btn-outline-dark btn btn-md">Logout</button>
+        <% } %>
       </form>
       
     </div>
@@ -28,7 +30,7 @@
           <table class="table">
           
           <tr><th>Date</th>
-            <th class="d-none d-sm-table-cell">Behaviour</th>
+          
             <th class="d-none d-sm-table-cell">Flock size</th>
             <th>Species</th>
             <th id="delete-heading">Delete</th>
@@ -36,8 +38,8 @@
           <tr>
             <% for (let i = 0; i < allNotes.length; i += 1) { %> 
             <td><a href="/note/<%= allNotes[i].id %>" style="color: darkslategray"><%= allNotes[i].date %></a></td>
-            <td class="d-none d-sm-table-cell"><%= allNotes[i].behaviour %></td>
-            <td class="d-none d-sm-table-cell"><%= allNotes[i].flock_size %></td>
+            
+            <td><%= allNotes[i].flock_size %></td>
             <td><%= allNotes[i].name %></td>
             <td><form id="delete-button" action="/note/<%= allNotes[i].id %>/delete?_method=DELETE" method="POST">
           <button class="btn btn-sm btn-outline" type="submit"><i class="fa fa-trash-alt"></i></button>
