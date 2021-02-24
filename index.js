@@ -8,15 +8,31 @@ const SALT = 'birds are awesome';
 
 const { Pool } = pg;
 
-const pool = new Pool({
-  username: 'michellemok',
-  host: 'localhost',
-  database: 'birding',
-  port: 5432,
-});
+let pgConnectionConfigs;
+if (process.env.ENV === 'PRODUCTION') {
+  // determine how we connect to the remote Postgres server
+  pgConnectionConfigs = {
+    user: 'postgres',
+    // set DB_PASSWORD as an environment variable for security.
+    password: process.env.DB_PASSWORD,
+    host: 'localhost',
+    database: 'birding',
+    port: 5432,
+  };
+} else {
+  // determine how we connect to the local Postgres server
+  pgConnectionConfigs = {
+    user: '<MY_UNIX_USERNAME>',
+    host: 'localhost',
+    database: 'birding',
+    port: 5432,
+  };
+}
+
+const pool = new Pool(pgConnectionConfigs);
 
 const app = express();
-const PORT = 3000;
+const PORT = process.argv[2];
 
 app.set('view engine', 'ejs');
 app.use(express.static('public'));
