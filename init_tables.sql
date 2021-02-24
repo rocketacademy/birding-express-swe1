@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS species (
   id SERIAL PRIMARY KEY,
   name TEXT,
-  scientific_name TEXT,
+  scientific_name TEXT
 );
 
 CREATE TABLE IF NOT EXISTS users (
