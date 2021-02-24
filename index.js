@@ -22,7 +22,7 @@ if (process.env.ENV === 'PRODUCTION') {
 } else {
   // determine how we connect to the local Postgres server
   pgConnectionConfigs = {
-    user: '<MY_UNIX_USERNAME>',
+    user: 'michellemok',
     host: 'localhost',
     database: 'birding',
     port: 5432,
