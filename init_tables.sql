@@ -1,16 +1,21 @@
-CREATE TABLE behaviour (
+CREATE TABLE IF NOT EXISTS species (
+  id SERIAL PRIMARY KEY,
+  name TEXT,
+  scientific_name TEXT,
+);
+
+CREATE TABLE IF NOT EXISTS users (
+  id SERIAL PRIMARY KEY,
+  email TEXT,
+  password TEXT
+);
+
+CREATE TABLE IF NOT EXISTS behaviour (
   id SERIAL PRIMARY KEY,
   action TEXT
 );
 
-CREATE TABLE comments (
-  id SERIAL PRIMARY KEY,
-  text TEXT,
-  notes_id INTEGER REFERENCES notes(id),
-  user_id INTEGER REFERENCES users(id)
-);
-
-CREATE TABLE notes (
+CREATE TABLE IF NOT EXISTS notes (
   id SERIAL PRIMARY KEY,
   flock_size INTEGER,
   user_id INTEGER REFERENCES users(id),
@@ -19,19 +24,14 @@ CREATE TABLE notes (
   behaviour TEXT
 );
 
-CREATE TABLE species (
+CREATE TABLE IF NOT EXISTS comments (
   id SERIAL PRIMARY KEY,
-  name TEXT,
-  scientific_name TEXT,
+  text TEXT,
+  notes_id INTEGER REFERENCES notes(id),
+  user_id INTEGER REFERENCES users(id)
 );
 
-CREATE TABLE users (
-  id SERIAL PRIMARY KEY,
-  email TEXT,
-  password TEXT,
-);
-
-CREATE TABLE notes_behaviour (
+CREATE TABLE IF NOT EXISTS notes_behaviour (
   id SERIAL PRIMARY KEY,
   notes_id INTEGER REFERENCES notes(id),
   behaviour_id INTEGER REFERENCES behaviour(id)
@@ -40,7 +40,7 @@ CREATE TABLE notes_behaviour (
 
 
 
-INSERT INTO users (email, password) VALUES (test123@gmail.com, 0dd3e512642c97ca3f747f9a76e374fbda73f9292823c0313be9d78add7cdd8f72235af0c553dd26797e78e1854edee0ae002f8aba074b066dfce1af114e32f8);
+
 
 INSERT INTO behaviour (action) VALUES ('bathing'), ('feeding'), ('walking'), ('resting'), ('flocking'), ('preening');   
   
