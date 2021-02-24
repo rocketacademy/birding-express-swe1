@@ -1,0 +1,63 @@
+
+    <%- include('partials/head') %>
+     
+
+    <title>New species form</title>
+  </head>
+  <body id="entry-form-body">
+  
+     <nav class="navbar navbar-expand-lg navbar-light" style="background-color:rgb(44, 163, 254)">
+  <a class="navbar-brand" href="/"><i class="fas fa-dove" style="color: lightslategrey"></i></a>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+    <div class="navbar-nav">
+      <a class="nav-item nav-link" href="/login">Log in </a>
+      <a class="nav-item nav-link" href="/note">Entry form</a>
+      <form action="/logout?_method=DELETE" method="POST">
+        <button type="submit" class="btn btn-outline-dark btn btn-md">Logout</button>
+      </form>
+      
+    </div>
+  </div>
+</nav>
+
+    <div class="container entry-form" >
+      <h2>New Species Entry</h2>
+      <p>Saw someone we don't know?
+       </p>
+    
+      
+      <div class="row justify-content-center align-items-center" style="height: 80vh">
+        <div class="col-12 col-md-10">
+        
+    <form class="entry-form-container" action="/species" method="POST" >
+  
+      
+            <div class="row">
+              <div class="col">
+      <div class="form-group">
+        <label for="name">Name: </label>
+        <input class="form-control" name="name" id="name">
+      </div>
+      </div>
+      </div>
+      <div class="row">
+        <div class="col">
+      <div class="form-group">
+      <label for="scientific_name">Scientific name: </label>
+      <input class="form-control" type="scientific_name" name="scientific_name" id="scientific_name" >
+      </div>
+      </div>
+      </div>
+    
+    
+        <br><br>
+      <button type="submit" class="btn btn-secondary btn-block">Submit</button>
+    </form>
+        </div>
+      </div>
+    </div>
+
+     <%- include ('partials/footer') %>

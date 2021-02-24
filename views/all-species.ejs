@@ -1,0 +1,49 @@
+
+    <%- include('partials/head') %>
+     
+
+    <title>All species</title>
+    
+  </head>
+  
+  <body >
+  
+     <nav class="navbar navbar-expand-lg navbar-light" style="background-color:rgb(44, 163, 254)">
+  <a class="navbar-brand" href="/"><i class="fas fa-dove" style="color: lightslategrey"></i></a>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+    <div class="navbar-nav">
+      <a class="nav-item nav-link" href="/login">Log in </a>
+      <a class="nav-item nav-link" href="/note">Entry form</a>
+      <form action="/logout?_method=DELETE" method="POST">
+        <button type="submit" class="btn btn-outline-dark btn btn-md">Logout</button>
+      </form>
+      
+    </div>
+  </div>
+</nav>
+
+<div class="container" style="height: 100vh; padding: 40px">
+<div class="row">
+<% for (let i = 0; i < speciesInfo.length; i += 1) { %>
+ <div class="col-sm-6 col-md-4">
+   <div class="card" style="margin: 10px">
+  <img class="card-img-top" src="/species<%= i + 1 %>.jpg">
+  <div class="card-body">
+    <h5 class="card-title"><%= speciesInfo[i].name %></h5>
+    <p class="card-text"><%= speciesInfo[i].scientific_name %></p>
+  </div>
+ 
+  <div class="card-body">
+    <a href="/species/<%= speciesInfo[i].id %>" class="card-link">Notes</a>
+  </div>
+</div>
+  </div>
+
+<% } %>
+</div>
+</div>
+
+     <%- include ('partials/footer') %>
