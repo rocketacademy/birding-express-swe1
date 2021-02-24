@@ -1,0 +1,53 @@
+    <%- include ('partials/head') %>
+    <title>Bird Watching Main Page</title>
+  </head>
+
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-light" style="background-color:rgb(44, 163, 254)">
+  <a class="navbar-brand" href="/"><i class="fas fa-dove" style="color: lightslategrey"></i></a>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+    <div class="navbar-nav">
+      <a class="nav-item nav-link" href="/login">Log in </a>
+      <a class="nav-item nav-link" href="/note">Entry form</a>
+      <form action="/logout?_method=DELETE" method="POST">
+  
+        <button type="submit" class="btn btn-outline-dark btn btn-md">Logout</button>
+      </form>
+      
+    </div>
+  </div>
+</nav>
+   
+      
+      <div class="container landing-page"> 
+     <h3>User records</h3>
+      <br>
+        <div class="table-responsive">
+          <table class="table">
+          
+          <tr><th>Date</th>
+          
+            <th>Flock size</th>
+        
+            <th>Species</th>
+            
+          </tr>
+          <tr>
+            <% for (let i = 0; i < userNotes.length; i += 1) { %> 
+            <td><a href="/note/<%= userNotes[i].id %>" style="color: darkslategray"><%= userNotes[i].date %></a></td>
+            
+            <td><%= userNotes[i].flock_size %></td>
+            <td><%= userNotes[i].name %></td>
+            
+        </form></td>
+        </tr>
+              <% } %>
+          </tr>
+        </table>
+        </div>
+
+      </div>
+    <%- include ('partials/footer') %>

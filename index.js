@@ -118,23 +118,6 @@ app.post('/note', (req, res) => {
 
 // displays one single entry in the database
 app.get('/note/:id', (req, res) => {
-  const { id } = req.params;
-  const singleNote = `SELECT notes.id, notes.flock_size, notes.date, users.email, species.name AS species FROM notes INNER JOIN users ON notes.user_id = users.id INNER JOIN species ON species.id = notes.species_id WHERE notes.id = ${id}`;
-
-  pool.query(singleNote, (singleNoteError, singleNoteResult) => {
-    if (singleNoteError) {
-      console.log('error', singleNoteError);
-    } else {
-      console.log(singleNoteResult.rows[0]);
-      const oneNote = singleNoteResult.rows[0];
-      console.log('one note', oneNote);
-      res.render('single-note', { eachNote: oneNote });
-    }
-  });
-});
-
-// displays all the entries in the database
-app.get('/', (req, res) => {
   console.log('logged in', req.cookies.loggedIn);
   console.log('userid', req.body.id);
 
@@ -147,19 +130,38 @@ app.get('/', (req, res) => {
   if (req.cookies.loggedInHash !== hashedCookieString) {
     res.status(403).send('please log in');
   } else {
-    const allQuery = 'SELECT notes.id, notes.behaviour, notes.flock_size, notes.user_id, notes.species_id, notes.date, species.name FROM notes INNER JOIN species ON notes.species_id = species.id';
-    pool.query(allQuery, (allQueryError, allQueryResult) => {
-      if (allQueryError) {
-        console.log('error', allQueryError);
+    const { id } = req.params;
+    const singleNote = `SELECT notes.id, notes.flock_size, notes.date, users.email, species.name AS species FROM notes INNER JOIN users ON notes.user_id = users.id INNER JOIN species ON species.id = notes.species_id WHERE notes.id = ${id}`;
+
+    pool.query(singleNote, (singleNoteError, singleNoteResult) => {
+      if (singleNoteError) {
+        console.log('error', singleNoteError);
       } else {
-        console.log(allQueryResult.rows);
-        const allNotes = allQueryResult.rows;
+        console.log(singleNoteResult.rows[0]);
+        const oneNote = singleNoteResult.rows[0];
+        console.log('one note', oneNote);
         const { loggedIn } = req.cookies;
         console.log('logged in?', loggedIn);
-        res.render('landing-page', { allNotes, loggedIn });
+        res.render('single-note', { eachNote: oneNote, loggedIn });
       }
     });
   }
+});
+
+// displays all the entries in the database
+app.get('/', (req, res) => {
+  const allQuery = 'SELECT notes.id, notes.behaviour, notes.flock_size, notes.user_id, notes.species_id, notes.date, species.name FROM notes INNER JOIN species ON notes.species_id = species.id';
+  pool.query(allQuery, (allQueryError, allQueryResult) => {
+    if (allQueryError) {
+      console.log('error', allQueryError);
+    } else {
+      console.log(allQueryResult.rows);
+      const allNotes = allQueryResult.rows;
+      const { loggedIn } = req.cookies;
+      console.log('logged in?', loggedIn);
+      res.render('landing-page', { allNotes, loggedIn });
+    }
+  });
 });
 
 // displays edit form (with user auth)
@@ -342,23 +344,60 @@ app.post('/login', (req, res) => {
 app.delete('/logout', (req, res) => {
   res.clearCookie('loggedIn');
   res.clearCookie('userId');
+  res.clearCookie('loggedInHash');
   res.redirect('/login');
 });
 
-// TODO: not finished!!! need to render ejs !!!
+// renders a page where the user can create a new species
+app.get('/species', (req, res) => {
+  res.render('species-form');
+});
 
+// submits new species data into the database
+app.post('/species', (req, res) => {
+  const inputSpeciesQuery = 'INSERT INTO species (name, scientific_name) VALUES ($1, $2)';
+
+  const inputData = [req.body.name, req.body.scientific_name];
+
+  pool.query(inputSpeciesQuery, inputData, (inputSpeciesQueryError, inputSpeciesQueryResult) => {
+    if (inputSpeciesQueryError) {
+      console.log('error', inputSpeciesQueryError);
+    } else {
+      console.log('done');
+      res.redirect('/');
+    }
+  });
+});
+
+// renders all the species
+app.get('/species/all', (req, res) => {
+  const getSpeciesInfo = 'SELECT * FROM species';
+
+  pool.query(getSpeciesInfo, (getSpeciesInfoError, getSpeciesInfoResult) => {
+    if (getSpeciesInfoError) {
+      console.log('error', getSpeciesInfoError);
+    } else {
+      console.log(getSpeciesInfoResult.rows);
+      const speciesInfo = getSpeciesInfoResult.rows;
+      console.log('species info', speciesInfo);
+      res.render('all-species', { speciesInfo });
+    }
+  });
+});
+
+// renders a page with a list of the user's entries
 app.get('/users/:id', (req, res) => {
   const usersId = Number(req.params.id);
 
-  const getUserEntriesQuery = `SELECT notes.id, notes.behaviour, notes.flock_size, notes.date, species.name FROM notes INNER JOIN species ON notes.species_id = species.id INNER JOIN users ON notes.user_id = users.id WHERE users.id = ${usersId}`;
+  const getUserEntriesQuery = `SELECT notes.id, notes.flock_size, notes.date, species.name FROM notes INNER JOIN species ON notes.species_id = species.id INNER JOIN users ON notes.user_id = users.id WHERE users.id = ${usersId}`;
 
   pool.query(getUserEntriesQuery, (getUserEntriesQueryError, getUserEntriesQueryResult) => {
     if (getUserEntriesQueryError) {
       console.log('error', getUserEntriesQueryError);
     } else {
       console.log(getUserEntriesQueryResult.rows);
-
-      res.render('user-page', {});
+      const userNotes = getUserEntriesQueryResult.rows;
+      res.render('user-page', { userNotes });
     }
   });
 });
