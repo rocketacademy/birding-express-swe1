@@ -1,11 +1,18 @@
-<%- include('../partials/header.ejs') %> <% if (page === 'home') { %>
-
-<div class="jumbotron jumbotron-fluid">
-  <div class="container">
-    <h1 class="display-4"><h1><%= page %></h1></h1>
-    <p class="lead"><%= desc %></p>
+<div class="container-fluid d-flex flex-row p-0">
+  <div class="row w-100">
+    <div class="col-sm-4"><%- include('../partials/header.ejs') %></div>
+    <div class="col-sm-8">
+      <% if (page === 'home') { %>
+      <div class="jumbotron jumbotron-fluid">
+        <div class="container">
+          <h1 class="display-4"><h1><%= page %></h1></h1>
+          <p class="lead"><%= desc %></p>
+        </div>
+      </div>
+      <% } else { %>
+      <h1><%= page %></h1>
+    </div>
   </div>
 </div>
-// END OF HOME PAGE <% } else { %>
-<h1><%= page %></h1>
+
 <% } %> <%- include('../partials/footer.ejs') %>

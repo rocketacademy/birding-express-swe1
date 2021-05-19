@@ -19,6 +19,6 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.use(express.static('./public'));
 
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.urlencoded({ extended: true }));
 
 app.listen(process.env.PORT, () => console.log(`LISTENING ON http://localhost:${process.env.PORT}`));
