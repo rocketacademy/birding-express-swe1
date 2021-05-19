@@ -3,9 +3,18 @@ import express from 'express';
 import path from 'path';
 import bodyParser from 'body-parser';
 import pg from 'pg';
+
 import {} from 'dotenv/config';
 
 import indexRouter from './routes/index.js';
+// DB Configuration
+const { Pool } = pg;
+const pgConnectionConfig = {
+  user: 'zaffere',
+  host: 'localhost',
+  database: process.env.DB_NAME,
+  port: process.env.DB_PORT,
+};
 
 const app = express();
 const __dirname = path.resolve('.');
