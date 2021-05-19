@@ -120,26 +120,6 @@ const convertDate = (date, formatFrom, formatTo) => {
 /* ========================================================================= */
 /* ================================================================== ROUTES */
 /* ========================================================================= */
-
-// // HOMEPAGE
-// app.get('/', getColumnData(['id', 'date_of_sighting', 'flock_size']), (req, res) => {
-//   // get data
-//   const requestedData = req.requestedDateFromColumn;
-//   const idObjArr = requestedData.id;
-//   const flockSizeArr = requestedData.flock_size;
-
-//   // the date is in ISO 8601 format. we need to use moment to convert
-//   // it to a readable format for the form
-//   const dateOfSightingArr = requestedData.date_of_sighting;
-//   dateOfSightingArr.forEach((e, i) => {
-//     const refomatDateOfSighting = convertDate(e.date_of_sighting, 'ISO8601', 'YYYY-MM-DD');
-//     dateOfSightingArr[i].date_of_sighting = refomatDateOfSighting;
-//   });
-//   console.log(dateOfSightingArr);
-//   // render
-//   res.render('index', { idObjArr, dateOfSightingArr, flockSizeArr });
-// });
-
 // HOMEPAGE
 app.get('/', (req, res) => {
   // get data
@@ -321,3 +301,5 @@ app.delete('/note/:id', (req, res) => {
 
 /* ================================================================== LISTEN */
 app.listen(PORT);
+
+// Test if branch is working
