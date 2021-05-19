@@ -1,0 +1,12 @@
+<%- include('partials/header',{title: `note ${ singleNote.id}`}) %>
+<div class="card" style="width: 18rem">
+  <ul class="list-group list-group-flush">
+    <li class="list-group-item"><%=singleNote.date%></li>
+    <li class="list-group-item"><%=singleNote.time%></li>
+    <li class="list-group-item"><%=singleNote.day%></li>
+    <li class="list-group-item"><%=singleNote.flock_size%></li>
+  </ul>
+  <div class="card-footer"><%=singleNote.habitat%></div>
+</div>
+
+<%- include('partials/footer') %>
