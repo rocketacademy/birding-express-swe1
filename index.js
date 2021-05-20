@@ -3,7 +3,10 @@
 import express from 'express';
 import methodOverride from 'method-override'; // npm install method-override
 import moment from 'moment'; // npm install moment
-// import cookieParser from 'cookie-parser';
+import cookieParser from 'cookie-parser'; // npm install cookie-parser
+
+// hashing
+import jsSHA from 'jssha';
 
 // postgres / database stuff
 import pg from 'pg'; // npm install pg
@@ -39,7 +42,7 @@ app.set('view engine', 'ejs');
 app.use(express.static('public'));
 
 /* ================================================================== COOKIES SET UP */
-// app.use(cookieParser());
+app.use(cookieParser());
 
 /* ================================================================== FUNCTIONS */
 /**
@@ -120,8 +123,121 @@ const convertDate = (date, formatFrom, formatTo) => {
 /* ========================================================================= */
 /* ================================================================== ROUTES */
 /* ========================================================================= */
+
+/* ================================================================== USER LOGIN / SIGN UP */
+// SIGN UP
+app.get('/sign-up', (req, res) => {
+  // render
+  res.render('sign-up');
+});
+app.post('/sign-up', (req, res) => {
+// get user sign up details
+  const userSignUpUserName = req.body.username;
+  const userSignUpEmail = req.body.email;
+  const userSignUpPassword = req.body.password;
+
+  // initialise the SHA object
+  const shaObj = new jsSHA('SHA-512', 'TEXT', { encoding: 'UTF8' });
+  // input the password from the request to the SHA object
+  shaObj.update(userSignUpPassword);
+  // get the hashed password as output from the SHA object
+  const hashedPassword = shaObj.getHash('HEX');
+
+  // Store email and hased password in db
+  const inputData = [userSignUpEmail, hashedPassword, userSignUpUserName];
+  const sqlQuery = 'INSERT INTO users (email, password, username) VALUES ($1, $2, $3) RETURNING *';
+  pool.query(sqlQuery, inputData, (error, result) => {
+    if (error) {
+      console.log('Error executing sign in query', error.stack);
+      res.status(503).send(result.rows);
+      return;
+    }
+    // acknowledge save
+    console.log(result.rows);
+    // Redirect
+    res.redirect('/login');
+  });
+});
+
+// LOGIN
+app.get('/login', (req, res) => {
+  // render
+  res.render('login');
+});
+app.post('/login', (req, res) => {
+  console.log('request for login in');
+
+  // Check if email exists
+  const email = [req.body.email];
+  pool.query('SELECT * from users WHERE email=$1', email, (error, result) => {
+    if (error) {
+      console.log('Error executing query', error.stack);
+      res.status(503).send(result.rows);
+      return;
+    }
+
+    // If email does not exist
+    if (result.rows.length === 0) {
+      // the error for password and user are the same. don't tell the user which error they got for
+      // security reasons, otherwise people can guess if a person is a user of a given service.
+      res.status(403).send('sorry!');
+      return;
+    }
+
+    // If email exists...
+    const user = result.rows[0];
+
+    // initialise SHA object
+    const shaObj = new jsSHA('SHA-512', 'TEXT', { encoding: 'UTF8' });
+    // input the password from the request to the SHA object
+    shaObj.update(req.body.password);
+    // get the hashed value as output from the SHA object
+    const hashedPassword = shaObj.getHash('HEX');
+
+    if (user.password !== hashedPassword) {
+      // the error for incorrect email and incorrect password are the same for security reasons.
+      // This is to prevent detection of whether a user has an account for a given service.
+      res.status(403).send('login failed!');
+      return;
+    }
+
+    // if email exists and password is correct
+    // The user's password hash matches that in the DB and we authenticate the user.
+    console.log('LOGGED IN');
+    // send cookie with user id
+    res.cookie('loggedIn', { userId: user.id, username: user.username });
+    res.redirect('/');
+  });
+});
+
+// LOG OUT
+app.delete('/logout', (req, res) => {
+  // delete cookie
+  res.clearCookie('loggedIn');
+  console.log('LOGGED OUT!');
+  res.redirect('/');
+});
+
+/* ================================================================== CHECK */
+app.all('*', (req, res, next) => {
+  // check if got login cookie
+  const loginCookie = Object.keys(req.cookies);
+  // console.log(loginCookie);
+  if (loginCookie.includes('loggedIn')) {
+    // console.log('Verified user!');
+    // console.log(`${Object.entries(req.cookies.loggedIn)}`);
+    return next();
+  }
+  console.log('Unverified user! Proceed to login page');
+  res.redirect('/login');
+});
+
+/* ================================================================== OTHER PAGES */
 // HOMEPAGE
 app.get('/', (req, res) => {
+  // get cookie data
+  const userName = req.cookies.loggedIn.username;
+  const { userId } = req.cookies.loggedIn;
   // get data
   const sqlQuery = 'SELECT id, date_of_sighting, flock_size FROM notes';
   pool.query(sqlQuery, (error, result) => {
@@ -140,12 +256,17 @@ app.get('/', (req, res) => {
     });
     dateOfSightingArr = { sightingArr: dateOfSightingArr };
     // render
-    res.render('index', { dataArr, dateOfSightingArr });
+    res.render('index', {
+      dataArr, dateOfSightingArr, userName, userId,
+    });
   });
 });
 
 // SORTING FOR HOMEPAGE
 app.get('/:sort', (req, res, next) => {
+  // get cookie data
+  const userName = req.cookies.loggedIn.username;
+  const { userId } = req.cookies.loggedIn;
   // sort database function
   const sortDataBase = (typeOfSortSql) => {
     const sqlQuery = `SELECT * FROM notes ORDER BY date_of_sighting ${typeOfSortSql}`;
@@ -165,7 +286,9 @@ app.get('/:sort', (req, res, next) => {
       });
       dateOfSightingArr = { sightingArr: dateOfSightingArr };
       // render
-      res.render('index', { dataArr, dateOfSightingArr });
+      res.render('index', {
+        dataArr, dateOfSightingArr, userName, userId,
+      });
     });
   };
 
@@ -185,8 +308,42 @@ app.get('/:sort', (req, res, next) => {
   }
 });
 
+// USER SIGHTINGS
+// HOMEPAGE
+app.get('/users/:id', (req, res) => {
+  // get url query
+  const { id } = req.params;
+  // get cookie data
+  const userName = req.cookies.loggedIn.username;
+  const { userId } = req.cookies.loggedIn;
+  // get data
+  const sqlQuery = `SELECT id, date_of_sighting, flock_size FROM notes WHERE user_id = ${id}`;
+  pool.query(sqlQuery, (error, result) => {
+    if (error) {
+      console.log('Error executing homepage query', error.stack);
+      res.status(503).send(result.rows);
+      return;
+    }
+    const dataArr = { arr: result.rows };
+    // the date is in ISO 8601 format. we need to use moment to convert
+    // it to a readable format for the form
+    let dateOfSightingArr = [];
+    dataArr.arr.forEach((e, i) => {
+      const refomatDateOfSighting = convertDate(e.date_of_sighting, 'ISO8601', 'YYYY-MM-DD');
+      dateOfSightingArr.push(refomatDateOfSighting);
+    });
+    dateOfSightingArr = { sightingArr: dateOfSightingArr };
+    // render
+    res.render('users', {
+      dataArr, dateOfSightingArr, userName, userId,
+    });
+  });
+});
+
 // SINGLE PAGES
 app.get('/note/:id', (req, res) => {
+  // get cookies
+  const { userId } = req.cookies.loggedIn;
   // get id
   const { id } = req.params;
   const sqlQuery = `SELECT * FROM notes WHERE id=${id}`;
@@ -202,23 +359,29 @@ app.get('/note/:id', (req, res) => {
     const refomatDateOfSighting = convertDate(dataForSelectedId.date_of_sighting, 'ISO8601', 'YYYY-MM-DD');
     dataForSelectedId.date_of_sighting = refomatDateOfSighting;
     // render
-    res.render('single-sighting', dataForSelectedId);
+    console.log('THIS RAN');
+    res.render('single-sighting', { dataForSelectedId, userId });
   });
 });
 
 // POST SIGHTING
 // get
 app.get('/note', (req, res) => {
+  // get cookies
+  const { userId } = req.cookies.loggedIn;
+  // set max date for calendar input
   const formMaxDate = { maxDate: getCustomDateAndTime('form') };
-  res.render('note', formMaxDate);
+  res.render('note', { formMaxDate, userId });
 });
 // post
 app.post('/note', (req, res) => {
-// get sighting submission
+  // get cookies
+  const { userId } = req.cookies.loggedIn;
+  // get sighting submission
   const dataObj = req.body;
   // Add new  data in sql database
-  const inputData = [dataObj.date_of_sighting, dataObj.appearance, dataObj.behaviour, dataObj.flock_size];
-  const sqlQuery = 'INSERT INTO notes (date_of_sighting, appearance, behaviour, flock_size) VALUES ($1, $2, $3, $4) RETURNING *';
+  const inputData = [dataObj.date_of_sighting, dataObj.appearance, dataObj.behaviour, dataObj.flock_size, userId];
+  const sqlQuery = 'INSERT INTO notes (date_of_sighting, appearance, behaviour, flock_size, user_id) VALUES ($1, $2, $3, $4, $5) RETURNING *';
   pool.query(sqlQuery, inputData, (error, result) => {
     if (error) {
       console.log('Error executing query', error.stack);
@@ -234,12 +397,16 @@ app.post('/note', (req, res) => {
 
 // FORM SUBMISSION SUCCESS
 app.get('/form-submit-successful', (req, res) => {
-  res.render('form-submit-successful');
+  // get cookies
+  const { userId } = req.cookies.loggedIn;
+  res.render('form-submit-successful', { userId });
 });
 
 // EDIT SIGHTING
 // get
 app.get('/note/:id/edit', (req, res) => {
+  // get cookies
+  const { userId } = req.cookies.loggedIn;
   // get id
   const { id } = req.params;
   // set max date for form
@@ -258,7 +425,7 @@ app.get('/note/:id/edit', (req, res) => {
     const refomatDateOfSighting = convertDate(dataForSelectedId.date_of_sighting, 'ISO8601', 'YYYY-MM-DD');
     dataForSelectedId.date_of_sighting = refomatDateOfSighting;
     // render
-    res.render('edit', { dataForSelectedId, formMaxDate });
+    res.render('edit', { dataForSelectedId, formMaxDate, userId });
   });
 });
 
