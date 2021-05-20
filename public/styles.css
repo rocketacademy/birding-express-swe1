@@ -1,0 +1,125 @@
+@import url("https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono&display=swap");
+
+:root {
+  --display: "Amiri", serif;
+  --monospace: "IBM Plex Mono", monospace;
+}
+
+html {
+  --black: #39372c;
+  --white: #f5f4ed;
+  --yellow: #e5e89a;
+  --light-green: #cdceba;
+  --dark-green: #39372c;
+}
+
+/* ====== TYPOGRAPHY ====== */
+
+h1 {
+  font-family: var(--display);
+  font-size: 32px;
+  line-height: 110%;
+}
+
+p,
+body {
+  font-family: var(--monospace);
+  font-size: 12px;
+}
+
+a {
+  text-decoration: none;
+}
+
+/* ====== CONTENT ====== */
+
+body {
+  background-color: var(--white);
+  color: var(--black);
+}
+
+/* ====== HEADER ====== */
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+nav a.hidden {
+  display: none;
+}
+
+nav a.visible {
+  display: inline;
+}
+
+nav {
+  display: flex;
+  justify-content: space-evenly;
+  width: 50vh;
+}
+
+/* ====== HOMEPAGE CARDS ====== */
+
+.cards {
+  max-width: 1080px;
+  margin-left: auto;
+  margin-right: auto;
+
+  padding-left: 16px;
+  padding-right: 16px;
+
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.card,
+.card img {
+  width: 250px;
+  min-height: 400px;
+  object-fit: cover;
+  position: relative;
+}
+
+.card {
+  margin: 12px;
+}
+
+.card img {
+  transition: filter 0.3s;
+}
+
+.card:hover img {
+  filter: grayscale(1);
+}
+
+.card-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+
+  width: calc(100% - 32px);
+  height: 100%;
+  padding: 0 16px;
+
+  background-color: rgb(0, 0, 0, 0.7);
+
+  opacity: 0;
+  transition: opacity 0.3s ease-in;
+  z-index: 2;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.card:hover .card-overlay {
+  color: var(--white);
+  opacity: 1;
+}
