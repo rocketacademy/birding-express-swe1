@@ -3,31 +3,23 @@ import express from 'express';
 import path from 'path';
 import bodyParser from 'body-parser';
 import pg from 'pg';
-
 import {} from 'dotenv/config';
 
-import indexRouter from './routes/index.js';
-// DB Configuration
-const { Pool } = pg;
-const pgConnectionConfig = {
-  user: 'zaffere',
-  host: 'localhost',
-  database: process.env.DB_NAME,
-  port: process.env.DB_PORT,
-};
+// APP ROUTERS
+import indexRouter from './routes/indexRouter.js';
+import noteRouter from './routes/noteRouter.js';
 
-const app = express();
 const __dirname = path.resolve('.');
-// const __dirname = path.dirname('./app.js');
-app.use('/', indexRouter);
-// const pool = new Pool
-// const { Pool } = pg;
-// View engie setup
+
+// INITIALISING THE SERVER
+const app = express();
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.use(express.static('./public'));
+app.use(express.urlencoded({ extended: false }));
 
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use('/', indexRouter);
+app.use('/note', noteRouter);
 
 app.listen(process.env.PORT, () => console.log(`LISTENING ON http://localhost:${process.env.PORT}`));

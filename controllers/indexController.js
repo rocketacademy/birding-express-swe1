@@ -14,6 +14,3 @@ export const aboutController = (req, res) => {
 
   });
 };
-export const createNoteController = (req, res) => {
-  res.status(200).render('homeViews/createNote');
-};

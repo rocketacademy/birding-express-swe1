@@ -1,0 +1,17 @@
+<%- include('../partials/header.ejs') %> <%= instructions %>
+
+<div class="container">
+  <div class="row">
+    <div class="col-sm-2"></div>
+    <div class="col-sm-8">
+      <div class="card p-3 mb-3 shadow">
+        <h1><%= data.habitat %></h1>
+        <h2><%= data.behaviour%></h2>
+        <small><%= data.date%></small>
+      </div>
+    </div>
+    <div class="col-sm-2"></div>
+  </div>
+</div>
+
+<%- include('../partials/footer.ejs') %>
