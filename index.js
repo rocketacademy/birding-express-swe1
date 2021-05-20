@@ -75,24 +75,64 @@ app.get('/note', (req, res) => {
 });
 
 app.post('/note', (req, res) => {
-  // req.body returns JSON object { "type_of_owl": "", "photo": "", "date": "2021-05-04" ...}
+  // req.body returns JS object { "type_of_owl": "", "photo": "", "date": "2021-05-04" ...}
+  console.log(req.body);
   const {
-    type_of_owl, photo, date, spotter, cuteness_factor, location,
+    id,
+    type_of_owl: owlType,
+    photo,
+    date,
+    spotter,
+    cuteness_factor: cuteness,
+    location,
   } = req.body;
 
-  const addOwlSqlQuery = `INSERT INTO notes (type_of_owl, photo, date, spotter, cuteness_factor, location) VALUES ( '${type_of_owl}', '${photo}','${date}','${spotter}','${cuteness_factor}','${location}') RETURNING *`;
+  // Adds a new row into notes table
+  const addOwlSqlQuery = `INSERT INTO notes (type_of_owl, photo, date, spotter, cuteness_factor, location) VALUES ( '${owlType}', '${photo}','${date}','${spotter}',${cuteness},'${location}') RETURNING *`;
 
-  client.query(addOwlSqlQuery, (err, res) => {
-    // this error is anything that goes wrong with the query
-    if (err) {
-      console.log('error', err);
-    } else {
-      // rows key has the data
-      res.redirect(303, 'confirmnote');
-      console.log(res.rows);
+  client.query(addOwlSqlQuery, (addOwlQueryErr, addOwlQueryRes) => {
+    if (addOwlQueryErr) {
+      console.log('error', addOwlQueryErr);
+      return;
     }
+    // rows key has the data
+    res.redirect(303, `/note/confirm/${addOwlQueryRes.rows[0].id}`);
+    // console.log(addOwlQueryRes.rows);
     // close the connection
-    client.end();
+    // client.end();
+  });
+});
+
+app.get('/note/confirm/:id', (req, res) => {
+  // req.params returns the id
+  const { id } = req.params;
+  res.render('confirmnote', { id });
+});
+
+app.get('/note/:id', (req, res) => {
+  const { id: owlTableId } = req.params;
+
+  const getRowSqlQuery = `SELECT * FROM notes WHERE id=${owlTableId}`;
+
+  client.query(getRowSqlQuery, (getRowSqlErr, getRowSqlRes) => {
+    if (getRowSqlErr) {
+      console.log('error: ', getRowSqlErr);
+      return;
+    }
+
+    const {
+      id,
+      type_of_owl: owlType,
+      photo,
+      date,
+      spotter,
+      cuteness_factor: cuteness,
+      location,
+    } = getRowSqlRes.rows[0];
+
+    res.render('singlenote', {
+      id, owlType, photo, date, spotter, cuteness, location,
+    });
   });
 });
 
@@ -111,21 +151,50 @@ app.post('/note', (req, res) => {
 /* ============ SIGN UP / LOG IN / LOGOUT =========== */
 
 app.get('/signup', (req, res) => {
-  res.render('signup', {});
+  res.render('signup');
 });
 
-app.post('signup', (req, res) => {
-  res.redirect(303, 'signup-confirm');
+app.post('/signup', (req, res) => {
+  const { name, email, password } = req.body;
+
+  // Check if user exists
+  const listUsersSqlQuery = `SELECT * FROM users WHERE email=${email}`;
+
+  client.query(listUsersSqlQuery, (listUsersErr, listUsersRes) => {
+    if (listUserErr) {
+      console.error(listUsersErr);
+      return;
+    } if (listUsersRes) {
+      // if the user exists
+    }
+    const usersObjArr = listUsersRes.rows;
+    console.log(usersObjArr);
+    res.redirect(303, '/login');
+    client.end();
+  });
+
+  // const addUserSqlQuery = `INSERT INTO users (name, email, password) VALUES ('${name}', '${email}', '${password}') RETURNING * `;
+
+  // client.query(addUserSqlQuery, (addUserQueryErr, addUserQueryRes) => {
+  //   if (addUserQueryErr) {
+  //     console.error(addUserQueryErr);
+  //     return;
+  //   }
+  //   console.log(addUserQueryRes.rows[0]);
+
+  // })
 });
 
 app.get('/login', (req, res) => {
-  res.render('signin', {});
+  res.render('signin');
 });
 
 app.post('/login', (req, res) => {
+  // const { }
   // Send cookie in the response header
   // Log user in
   // Redirect user to the dashboard?
+  console.log(req.body);
 });
 
 /* ============ LISTEN =========== */

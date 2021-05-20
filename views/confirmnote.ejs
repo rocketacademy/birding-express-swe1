@@ -9,6 +9,10 @@
     <title>Done!</title>
   </head>
   <body>
-    <h1>Yay! New owl!</h1>
+    <%- include('../templates/header'); -%>
+    <div class="container">
+      <h1>Yay! New owl!</h1>
+      <a href="/index/<%= id %> ">See your owl again</a>
+    </div>
   </body>
 </html>
