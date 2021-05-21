@@ -23,6 +23,16 @@
                 <div class="invalid-feedback">Please provide a date</div>
               </div>
             </div>
+
+            <div class="row form-row">
+              <label for="species_id">Bird Species</label>
+              <select id="species_id" name="species_id" class="form-control" required>
+                <% birdSpecies.birds.forEach((bird) => { %>
+                  <option value = <%= bird.id %> ><%= bird.name %></option>
+                <% }); %>
+              </select>
+            </div>
+
             <div class="row form-row">
               <label for="flock_size">Flock Size</label>
               <select id="flock_size" name="flock_size" class="form-control" required>

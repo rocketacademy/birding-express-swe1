@@ -11,22 +11,32 @@
 
     <section class = 'container-fluid my-container sightings'>
       <div class = 'row my-row justify-content-center'>
+
         <div class="col-12 my-col">
           <p><strong>Date of sighting:</strong></p>
           <p><%= dataForSelectedId.date_of_sighting %></p>
         </div>
+
+        <div class="col-12 my-col">
+          <p><strong>Bird Species </strong></p>
+          <p><%= selectedBird.birdName %></p>
+        </div>
+
         <div class="col-12 my-col">
           <p><strong>Flock Size </strong></p>
           <p><%= dataForSelectedId.flock_size %></p>
         </div>
+
         <div class="col-12 my-col">
           <p><strong>Appearance </strong></p>
           <p><%= dataForSelectedId.appearance %></p>
         </div>
+
         <div class="col-12 my-col">
           <p><strong>Behaviour </strong></p>
           <p><%= dataForSelectedId.behaviour %></p>
         </div>
+
       </div>
 
       <div class = 'row my-row justify-content-center'>

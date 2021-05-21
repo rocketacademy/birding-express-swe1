@@ -120,6 +120,22 @@ const convertDate = (date, formatFrom, formatTo) => {
     return outputFormatedDate;
   }
 };
+
+/*
+ * PRECIOUS CALLBACK FUNCTION
+*/
+const selectDataSqlQuery = (sqlQuery, callback) => {
+  pool.query(sqlQuery, (error, result) => {
+    if (error) {
+      // handle errors own way
+      callback(error, null);
+      return;
+    }
+    const data = result.rows;
+    callback(null, data);
+  });
+};
+
 /* ========================================================================= */
 /* ================================================================== ROUTES */
 /* ========================================================================= */
@@ -159,11 +175,17 @@ app.post('/sign-up', (req, res) => {
   });
 });
 
+let counter = 0;
 // LOGIN
 app.get('/login', (req, res) => {
+  console.log(`In login route: ${counter}`);
   // render
   res.render('login');
+  counter += 1;
 });
+
+console.log('OUTSIDE LOGIN');
+
 app.post('/login', (req, res) => {
   console.log('request for login in');
 
@@ -220,6 +242,7 @@ app.delete('/logout', (req, res) => {
 
 /* ================================================================== CHECK */
 app.all('*', (req, res, next) => {
+  console.log('In check route');
   // check if got login cookie
   const loginCookie = Object.keys(req.cookies);
   // console.log(loginCookie);
@@ -309,7 +332,6 @@ app.get('/:sort', (req, res, next) => {
 });
 
 // USER SIGHTINGS
-// HOMEPAGE
 app.get('/users/:id', (req, res) => {
   // get url query
   const { id } = req.params;
@@ -346,6 +368,8 @@ app.get('/note/:id', (req, res) => {
   const { userId } = req.cookies.loggedIn;
   // get id
   const { id } = req.params;
+
+  // query selected note id
   const sqlQuery = `SELECT * FROM notes WHERE id=${id}`;
   pool.query(sqlQuery, (error, result) => {
     if (error) {
@@ -353,25 +377,48 @@ app.get('/note/:id', (req, res) => {
       res.status(503).send(result.rows);
       return;
     }
+
     const dataForSelectedId = result.rows[0];
     // the date is in ISO 8601 format. we need to use moment to convert
     // it to a readable format for the form
     const refomatDateOfSighting = convertDate(dataForSelectedId.date_of_sighting, 'ISO8601', 'YYYY-MM-DD');
     dataForSelectedId.date_of_sighting = refomatDateOfSighting;
-    // render
-    console.log('THIS RAN');
-    res.render('single-sighting', { dataForSelectedId, userId });
+
+    // query selected bird
+    const birdSqlQuery = `SELECT species.name FROM notes INNER JOIN species ON notes.species_id = species.id WHERE notes.id=${id}`;
+    pool.query(birdSqlQuery, (birdError, birdResult) => {
+      if (birdError) {
+        console.log('Error executing query', birdError.stack);
+        res.status(503).send(birdResult.rows);
+        return;
+      }
+      const selectedBird = { birdName: birdResult.rows[0].name };
+      // render
+      res.render('single-sighting', { dataForSelectedId, userId, selectedBird });
+    });
   });
 });
-
 // POST SIGHTING
 // get
 app.get('/note', (req, res) => {
   // get cookies
   const { userId } = req.cookies.loggedIn;
+
   // set max date for calendar input
   const formMaxDate = { maxDate: getCustomDateAndTime('form') };
-  res.render('note', { formMaxDate, userId });
+
+  // query for list of birds
+  const sqlQuery = 'SELECT * FROM species';
+  selectDataSqlQuery(sqlQuery, (err, data) => {
+    if (err) {
+      console.error('Error executing query', err.stack);
+      res.status(503).send(data);
+      return;
+    }
+    const birdSpecies = { birds: data };
+    // render
+    res.render('note', { formMaxDate, userId, birdSpecies });
+  });
 });
 // post
 app.post('/note', (req, res) => {
@@ -380,11 +427,11 @@ app.post('/note', (req, res) => {
   // get sighting submission
   const dataObj = req.body;
   // Add new  data in sql database
-  const inputData = [dataObj.date_of_sighting, dataObj.appearance, dataObj.behaviour, dataObj.flock_size, userId];
-  const sqlQuery = 'INSERT INTO notes (date_of_sighting, appearance, behaviour, flock_size, user_id) VALUES ($1, $2, $3, $4, $5) RETURNING *';
+  const inputData = [dataObj.date_of_sighting, dataObj.appearance, dataObj.behaviour, dataObj.flock_size, userId, dataObj.species_id];
+  const sqlQuery = 'INSERT INTO notes (date_of_sighting, appearance, behaviour, flock_size, user_id, species_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *';
   pool.query(sqlQuery, inputData, (error, result) => {
     if (error) {
-      console.log('Error executing query', error.stack);
+      console.error('Error executing query', error.stack);
       res.status(503).send(result.rows);
       return;
     }
@@ -412,20 +459,64 @@ app.get('/note/:id/edit', (req, res) => {
   // set max date for form
   const formMaxDate = { maxDate: getCustomDateAndTime('form') };
   // get data for form
-  const sqlQuery = `SELECT * FROM notes WHERE id= ${id}`;
-  pool.query(sqlQuery, (error, result) => {
-    if (error) {
-      console.log('Error executing query for edit form', error.stack);
-      res.status(503).send(result.rows);
+
+  // query for notes
+  const noteSqlQuery = `SELECT * FROM notes WHERE id= ${id}`;
+  selectDataSqlQuery(noteSqlQuery, (noteErr, noteData) => {
+    if (noteErr) {
+      console.error('Error executing edit form query', noteErr.stack);
+      res.status(503).send(noteData);
       return;
     }
-    const dataForSelectedId = result.rows[0];
+    const dataForSelectedId = noteData[0];
+
     // the date is in ISO 8601 format. we need to use moment to convert
     // it to a readable format for the form
     const refomatDateOfSighting = convertDate(dataForSelectedId.date_of_sighting, 'ISO8601', 'YYYY-MM-DD');
     dataForSelectedId.date_of_sighting = refomatDateOfSighting;
-    // render
-    res.render('edit', { dataForSelectedId, formMaxDate, userId });
+
+    // query for selected bird from previous form
+    const previousBirdSqlQuery = `SELECT species.name FROM notes INNER JOIN species ON notes.species_id = species.id WHERE notes.id = ${id}`;
+    selectDataSqlQuery(previousBirdSqlQuery, (singleBirdErr, singleBirdData) => {
+      if (singleBirdErr) {
+        console.error('Error executing single bird query', singleBirdErr.stack);
+        res.status(503).send(singleBirdData);
+        return;
+      }
+      const previousSelectedBird = { selectedBird: singleBirdData[0].name };
+
+      // query for list of birds
+      const birdsSqlQuery = 'SELECT * FROM species';
+      selectDataSqlQuery(birdsSqlQuery, (birdsErr, birdsData) => {
+        if (birdsErr) {
+          console.error('Error executing bird query', birdsErr.stack);
+          res.status(503).send(birdsData);
+          return;
+        }
+        const birdSpecies = { birds: birdsData };
+
+        // render
+        res.render('edit', {
+          dataForSelectedId, formMaxDate, userId, birdSpecies, previousSelectedBird,
+        });
+      });
+    });
+
+  // const sqlQuery = `SELECT * FROM notes WHERE id= ${id}`;
+  // pool.query(sqlQuery, (error, result) => {
+  //   if (error) {
+  //     console.log('Error executing query for edit form', error.stack);
+  //     res.status(503).send(result.rows);
+  //     return;
+  //   }
+  //   const dataForSelectedId = result.rows[0];
+  //   // the date is in ISO 8601 format. we need to use moment to convert
+  //   // it to a readable format for the form
+  //   const refomatDateOfSighting = convertDate(dataForSelectedId.date_of_sighting, 'ISO8601', 'YYYY-MM-DD');
+  //   dataForSelectedId.date_of_sighting = refomatDateOfSighting;
+  //   // render
+  //   res.render('edit', { dataForSelectedId, formMaxDate, userId });
+  // });
   });
 });
 
@@ -437,7 +528,7 @@ app.put('/note/:id/edit', (req, res) => {
   const editedForm = req.body;
   console.log(editedForm);
   // update DB
-  const sqlQuery = `UPDATE notes SET date_of_sighting = '${editedForm.date_of_sighting}', appearance = '${editedForm.appearance}', behaviour = '${editedForm.behaviour}', flock_size = '${editedForm.flock_size}' WHERE id = ${id}`;
+  const sqlQuery = `UPDATE notes SET date_of_sighting = '${editedForm.date_of_sighting}', appearance = '${editedForm.appearance}', behaviour = '${editedForm.behaviour}', flock_size = '${editedForm.flock_size}, ${editedForm.species_id}' WHERE id = ${id}`;
   pool.query(sqlQuery, (error, result) => {
     if (error) {
       console.log('Error executing edit for form', error.stack);
