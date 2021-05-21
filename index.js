@@ -1,8 +1,7 @@
 /* eslint-disable no-underscore-dangle */
 import express from 'express';
 import path from 'path';
-import bodyParser from 'body-parser';
-import pg from 'pg';
+
 import {} from 'dotenv/config';
 
 // APP ROUTERS
@@ -15,7 +14,8 @@ const __dirname = path.resolve('.');
 const app = express();
 
 app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, 'views'));
+// app.set('views', path.join(__dirname, 'views'));
+app.set('views', './views');
 app.use(express.static('./public'));
 app.use(express.urlencoded({ extended: false }));
 

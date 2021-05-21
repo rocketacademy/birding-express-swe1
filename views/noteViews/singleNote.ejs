@@ -1,13 +1,21 @@
 <%- include('../partials/header.ejs') %> <%= instructions %>
-
+<a href="/note/all">back</a>
 <div class="container">
   <div class="row">
     <div class="col-sm-2"></div>
     <div class="col-sm-8">
       <div class="card p-3 mb-3 shadow">
-        <h1><%= data.habitat %></h1>
-        <h2><%= data.behaviour%></h2>
-        <small><%= data.date%></small>
+        <% data.forEach(row => { %>
+        <h1><%= row.habitat %></h1>
+        <h2><%= row.behaviour %></h2>
+        <small><%= row.flock_size %> </small>
+
+        <a class="btn btn-sm btn-warning" href="/note/edit/<%=row.id%>">Edit</a>
+        <a class="btn btn-sm btn-danger" href="/note/delete/<%=row.id%>"
+          >Delete</a
+        >
+
+        <% }) %>
       </div>
     </div>
     <div class="col-sm-2"></div>

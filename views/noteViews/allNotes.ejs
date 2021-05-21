@@ -1,6 +1,5 @@
-<%- include('../partials/header.ejs') %> <%= instructions %> <%-
-include('../partials/footer.ejs') %>
-
+<%- include('../partials/header.ejs') %> <%= instructions %>
+<a href="/">back</a>
 <div class="container">
   <div class="row">
     <div class="col-sm-2"></div>
@@ -11,7 +10,7 @@ include('../partials/footer.ejs') %>
         <li><%= d.flock_size %></li>
         <li><%= d.date %></li>
         <li><%= d.behaviour %></li>
-        <a href="single/<%= d.id %> ">Link</a>
+        <a href="http://localhost:3000/note/single/<%= d.id %> ">Link</a>
       </div>
 
       <% }) %> %>
@@ -19,3 +18,4 @@ include('../partials/footer.ejs') %>
     <div class="col-sm-2"></div>
   </div>
 </div>
+<%- include('../partials/footer.ejs') %>
