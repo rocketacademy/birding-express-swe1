@@ -123,3 +123,62 @@ nav {
   color: var(--white);
   opacity: 1;
 }
+
+/* ====== TABLE ====== */
+
+.wrapper {
+  margin: 0 auto;
+  padding: 40px;
+  max-width: 800px;
+}
+
+@media screen and (max-width: 580px) {
+  .table {
+    display: block;
+  }
+}
+.table {
+  margin: 0 0 40px 0;
+  width: 100%;
+  display: table;
+}
+.row {
+  display: table-row;
+  background: #f6f6f6;
+}
+
+.row:nth-of-type(odd) {
+  background: #e9e9e9;
+}
+
+.row.header {
+  font-weight: 900;
+  background: #ea6153;
+}
+
+@media screen and (max-width: 580px) {
+  .row {
+    padding: 14px 0 8px;
+  }
+
+  .row.header {
+    padding: 0;
+    height: 6px;
+  }
+
+  .row.cell {
+    margin-bottom: 10px;
+  }
+}
+
+.cell {
+  padding: 6px 12px;
+  display: table-cell;
+}
+
+@media screen and (max-width: 580px) {
+  .cell {
+    padding: 2px 16px;
+    display: block;
+  }
+}

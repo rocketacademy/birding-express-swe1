@@ -1,10 +1,11 @@
 import pg from 'pg';
 import methodOverride from 'method-override';
 import express from 'express';
+import cookieParser from 'cookie-parser';
 
 /* ============ CONFIGURATION =========== */
 
-const { Client } = pg;
+const { Pool } = pg;
 const app = express();
 
 // Set the view engine
@@ -25,6 +26,9 @@ app.use(express.urlencoded({ extended: true }));
 // Override POST requests with query param ?_method=PUT to be PUT requeåsts
 app.use(methodOverride('_method'));
 
+// Cookies for password
+app.use(cookieParser());
+
 // Set the way we will connect to the server
 const pgConnectionConfigs = {
   user: 'samanthalee',
@@ -34,38 +38,34 @@ const pgConnectionConfigs = {
 };
 
 // Create the var we'll use
-const client = new Client(pgConnectionConfigs);
+const pool = new Pool(pgConnectionConfigs);
 
 // Connect to the server
-client.connect();
-
-// Query done callback
-const whenQueryDone = (error, result) => {
-  // this error is anything that goes wrong with the query
-  if (error) {
-    console.log('error', error);
-  } else {
-    // rows key has the data
-    console.log(result.rows);
-  }
-
-  // close the connection
-  client.end();
-};
+pool.connect();
 
 /* ============ HOMEPAGE =========== */
 
 app.get('/', (req, res) => {
-  const sqlQuery = 'SELECT * FROM notes';
+  const loginMessage = 'not logged in';
 
-  client.query(sqlQuery, (queryErr, queryRes) => {
-    if (queryErr) {
-      return console.error(queryErr);
-    }
-    // Array of objects from notes table
-    res.render('index', { array: queryRes.rows });
+  if (req.cookies.loggedIn === 'true') {
+    pool.query('SELECT * FROM notes', (queryErr, queryRes) => {
+      if (queryErr) {
+        return console.error(queryErr);
+      }
+      // Array of objects from notes table
+      const toggleLogin = req.query.user;
+      // toggleLogin returns string 'login'
+      console.log(toggleLogin);
+
+      res.render('index', { array: queryRes.rows });
     // Print each owlObj into ejs file
-  });
+    });
+  } else {
+    res.render('homepage');
+  }
+
+  console.log(loginMessage);
 });
 
 /* ============ CREATE / READ FORM =========== */
@@ -90,16 +90,13 @@ app.post('/note', (req, res) => {
   // Adds a new row into notes table
   const addOwlSqlQuery = `INSERT INTO notes (type_of_owl, photo, date, spotter, cuteness_factor, location) VALUES ( '${owlType}', '${photo}','${date}','${spotter}',${cuteness},'${location}') RETURNING *`;
 
-  client.query(addOwlSqlQuery, (addOwlQueryErr, addOwlQueryRes) => {
+  pool.query(addOwlSqlQuery, (addOwlQueryErr, addOwlQueryRes) => {
     if (addOwlQueryErr) {
       console.log('error', addOwlQueryErr);
       return;
     }
     // rows key has the data
     res.redirect(303, `/note/confirm/${addOwlQueryRes.rows[0].id}`);
-    // console.log(addOwlQueryRes.rows);
-    // close the connection
-    // client.end();
   });
 });
 
@@ -109,12 +106,14 @@ app.get('/note/confirm/:id', (req, res) => {
   res.render('confirmnote', { id });
 });
 
+/* ============ READ EXISTING NOTE =========== */
+
 app.get('/note/:id', (req, res) => {
   const { id: owlTableId } = req.params;
 
   const getRowSqlQuery = `SELECT * FROM notes WHERE id=${owlTableId}`;
 
-  client.query(getRowSqlQuery, (getRowSqlErr, getRowSqlRes) => {
+  pool.query(getRowSqlQuery, (getRowSqlErr, getRowSqlRes) => {
     if (getRowSqlErr) {
       console.log('error: ', getRowSqlErr);
       return;
@@ -142,12 +141,6 @@ app.get('/note/:id', (req, res) => {
 
 // app.delete();
 
-/* ============ READ EXISTING NOTE =========== */
-
-// app.get('/note/:id', (req, res) => {
-//   res.render('singlenote', {});
-// });
-
 /* ============ SIGN UP / LOG IN / LOGOUT =========== */
 
 app.get('/signup', (req, res) => {
@@ -155,34 +148,32 @@ app.get('/signup', (req, res) => {
 });
 
 app.post('/signup', (req, res) => {
+  // User's input
   const { name, email, password } = req.body;
 
   // Check if user exists
-  const listUsersSqlQuery = `SELECT * FROM users WHERE email=${email}`;
+  const listUsersSqlQuery = `SELECT * FROM users WHERE email='${email}'`;
 
-  client.query(listUsersSqlQuery, (listUsersErr, listUsersRes) => {
-    if (listUserErr) {
+  pool.query(listUsersSqlQuery, (listUsersErr, listUsersRes) => {
+    if (listUsersErr) {
       console.error(listUsersErr);
       return;
-    } if (listUsersRes) {
-      // if the user exists
+      // If the user exists
+    } if (listUsersRes.rows.email === email) {
+      res.send('you already have an account!');
+      return;
     }
-    const usersObjArr = listUsersRes.rows;
-    console.log(usersObjArr);
-    res.redirect(303, '/login');
-    client.end();
+    // listUserRows = { id: '', email '', password: ''}
+    const addUserSqlQuery = `INSERT INTO users (name, email, password) VALUES ('${name}', '${email}', '${password}') RETURNING * `;
+
+    pool.query(addUserSqlQuery, (addUserQueryErr, addUserQueryRes) => {
+      if (addUserQueryErr) {
+        console.error(addUserQueryErr);
+        return;
+      }
+      res.redirect(303, '/login');
+    });
   });
-
-  // const addUserSqlQuery = `INSERT INTO users (name, email, password) VALUES ('${name}', '${email}', '${password}') RETURNING * `;
-
-  // client.query(addUserSqlQuery, (addUserQueryErr, addUserQueryRes) => {
-  //   if (addUserQueryErr) {
-  //     console.error(addUserQueryErr);
-  //     return;
-  //   }
-  //   console.log(addUserQueryRes.rows[0]);
-
-  // })
 });
 
 app.get('/login', (req, res) => {
@@ -190,11 +181,124 @@ app.get('/login', (req, res) => {
 });
 
 app.post('/login', (req, res) => {
-  // const { }
-  // Send cookie in the response header
-  // Log user in
-  // Redirect user to the dashboard?
-  console.log(req.body);
+  const { email: attemptEmail, password: attemptPassword } = req.body;
+  // req.body returns { email: '', password: ''}
+
+  pool.query(`SELECT * FROM users WHERE email='${attemptEmail}'`, (queryErr, queryRes) => {
+    if (queryErr) {
+      console.error(queryErr);
+      return;
+    }
+    // queryRes.rows returns [ { id: 1, name: 'sam', email: 'sam@gmail.com', password: '1234' } ]
+    // If the email exists, check if it has a matching password from the system
+    const userData = queryRes.rows[0];
+    const { password: realPassword } = userData;
+
+    if (attemptPassword === realPassword) {
+      console.log('yay correct pswd!');
+      res.cookie('loggedIn', true);
+      res.redirect(303, '/?user=login');
+    } else {
+      res.send('Whoops! Try again or contact your admin');
+    }
+  });
+});
+
+// LOG OUT
+app.delete('/logout', (req, res) => {
+  // delete cookies
+  res.clearCookie('loggedIn');
+  res.redirect(303, '/?user=logout');
+});
+
+/* ============ SPECIES =========== */
+
+app.get('/species', (req, res) => {
+  res.render('species-create');
+});
+
+app.post('/species', (req, res) => {
+  // req.body returns object { "common_name": "", "scientific_name": "" }
+  const { common_name: commonNameInput, scientific_name: scientificNameInput } = req.body;
+
+  const addSpeciesQuery = `INSERT INTO species (name, scientific_name) VALUES ('${commonNameInput}', '${scientificNameInput}') RETURNING *`;
+
+  pool.query(addSpeciesQuery, (addSpeciesErr, addSpeciesRes) => {
+    if (addSpeciesErr) {
+      console.error(addSpeciesErr);
+      return;
+    }
+    // const { name: commonName, scientific_name: scientificName } = addSpeciesRes;
+    res.redirect(303, '/species/all');
+  });
+});
+
+/**
+ * Shows all species page
+ */
+app.get('/species/all', (req, res) => {
+  const listAllSpeciesQuery = 'SELECT * FROM species';
+  pool.query(listAllSpeciesQuery, (listQueryErr, listQueryRes) => {
+    if (listQueryErr) {
+      console.error(listQueryErr);
+      return;
+    }
+    const speciesObjArr = listQueryRes.rows;
+    res.render('species-all', { array: speciesObjArr });
+  });
+});
+
+/**
+ * Shows the edit species page
+ */
+app.get('/species/:id/edit', (req, res) => {
+  // req.params.id will return id ;
+  const readSpeciesQuery = `SELECT * FROM species WHERE id='${req.params.id}'`;
+
+  pool.query(readSpeciesQuery, (readQueryErr, readQueryRes) => {
+    if (readQueryErr) {
+      console.error(readQueryErr);
+      return;
+    }
+    // readQueryRes.rows returns [ { id: 15, name: '', scientific_name: '' } ]
+    res.render('species-edit', { data: readQueryRes.rows[0] });
+  });
+});
+
+/**
+ * When user updates Edit page with new data
+ */
+app.put('/species/:id/edit', (req, res) => {
+  // req.body returns { "name": " ", "scientific_name": "" };
+  const { id } = req.params;
+  const { name, scientific_name } = req.body;
+  const editSpeciesQuery = `UPDATE species SET name='${name}', scientific_name='${scientific_name}' WHERE id='${id}' RETURNING * `;
+
+  pool.query(editSpeciesQuery, (editQueryErr, editQueryRes) => {
+    // editQueryRes.rows[0] returns {"id": "", "name": "", "scientific_name":""};
+    if (editQueryErr) {
+      console.error(editQueryErr);
+      return;
+    }
+    res.redirect(303, '/species/all');
+  });
+});
+
+/**
+ * User deletes species page
+ */
+app.delete('species/:id/edit', (req, res) => {
+  const { id } = req.params;
+
+  const deleteSpeciesQuery = `DELETE FROM species WHERE id='${id}'`;
+
+  pool.query(deleteSpeciesQuery, (deleteQueryErr, deleteQueryRes) => {
+    if (deleteQueryErr) {
+      console.error(deleteQueryErr);
+      return;
+    }
+    res.redirect(303, '/species/all');
+  });
 });
 
 /* ============ LISTEN =========== */

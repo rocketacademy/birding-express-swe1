@@ -9,22 +9,24 @@
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
-    <%- include('../templates/header'); -%> 
+    <%- include('../templates/header-user'); -%> 
 
     <section class="cards">
       <!-- For every row, I want to print a card -->
       <% array.forEach( (object) => { %>
-      <div class="card">
-        <div class="card-overlay">
-          <h1><%= object.type_of_owl %></h1>
-       
-            <p>Spotted <%= object.date %></p>
-            <p><%= object.location %></p>
-            <p><%= object.cuteness_factor %> / 10 cuteness</p>
-       
+      <a href="/note/<%= object.id %> ">
+        <div class="card">
+          <div class="card-overlay">
+            <h1><%= object.type_of_owl %></h1>
+        
+              <p>Spotted <%= object.date %></p>
+              <p><%= object.location %></p>
+              <p><%= object.cuteness_factor %> / 10 cuteness</p>
+        
+          </div>
+          <img src="<%= object.photo %> " />
         </div>
-        <img src="<%= object.photo %> " />
-      </div>
+      </a>
       <% }) %>
     </div>
   </body>
