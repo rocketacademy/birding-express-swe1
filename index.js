@@ -1,6 +1,6 @@
 import pg from 'pg';
 import methodOverride from 'method-override';
-import express from 'express';
+import express, { query } from 'express';
 import cookieParser from 'cookie-parser';
 
 /* ============ CONFIGURATION =========== */
@@ -71,14 +71,22 @@ app.get('/', (req, res) => {
 /* ============ CREATE / READ FORM =========== */
 
 app.get('/note', (req, res) => {
-  res.render('createnote', {});
+  const listBehaviorQuery = 'SELECT * FROM behaviors';
+
+  pool.query(listBehaviorQuery, (listBehaviorErr, listBehaviorRes) => {
+    if (listBehaviorErr) {
+      console.error(listBehaviorErr);
+      return;
+    }
+    res.render('createnote', { array: listBehaviorRes.rows });
+  });
 });
 
 app.post('/note', (req, res) => {
   // req.body returns JS object { "type_of_owl": "", "photo": "", "date": "2021-05-04" ...}
-  console.log(req.body);
+  const behaviorIds = req.body.behavior_ids; // Returns array of selected behavior ids
+
   const {
-    id,
     type_of_owl: owlType,
     photo,
     date,
@@ -96,7 +104,20 @@ app.post('/note', (req, res) => {
       return;
     }
     // rows key has the data
-    res.redirect(303, `/note/confirm/${addOwlQueryRes.rows[0].id}`);
+    const noteId = addOwlQueryRes.rows[0].id;
+
+    behaviorIds.forEach((behaviorId) => {
+      const addBehaviorToNoteQuery = `INSERT INTO behavior_note (note_id, behavior_id) VALUES ('${noteId}', '${behaviorId}') RETURNING * `;
+
+      pool.query(addBehaviorToNoteQuery, (queryError, queryRes) => {
+        if (queryError) {
+          console.error(queryError);
+        }
+      });
+    });
+
+    // Redirect to confirmation page
+    res.redirect(303, `/note/confirm/${noteId}`);
   });
 });
 
@@ -109,16 +130,15 @@ app.get('/note/confirm/:id', (req, res) => {
 /* ============ READ EXISTING NOTE =========== */
 
 app.get('/note/:id', (req, res) => {
-  const { id: owlTableId } = req.params;
+  const { id } = req.params;
 
-  const getRowSqlQuery = `SELECT * FROM notes WHERE id=${owlTableId}`;
+  const getRowSqlQuery = `SELECT * FROM notes WHERE id=${id}`;
 
   pool.query(getRowSqlQuery, (getRowSqlErr, getRowSqlRes) => {
     if (getRowSqlErr) {
-      console.log('error: ', getRowSqlErr);
+      res.send('Sorry, we couldn\'t find your owl!');
       return;
     }
-
     const {
       id,
       type_of_owl: owlType,
@@ -271,9 +291,8 @@ app.get('/species/:id/edit', (req, res) => {
 app.put('/species/:id/edit', (req, res) => {
   // req.body returns { "name": " ", "scientific_name": "" };
   const { id } = req.params;
-  const { name, scientific_name } = req.body;
-  const editSpeciesQuery = `UPDATE species SET name='${name}', scientific_name='${scientific_name}' WHERE id='${id}' RETURNING * `;
-
+  const { common_name, scientific_name } = req.body;
+  const editSpeciesQuery = `UPDATE species SET name='${common_name}', scientific_name='${scientific_name}' WHERE id='${id}' RETURNING * `;
   pool.query(editSpeciesQuery, (editQueryErr, editQueryRes) => {
     // editQueryRes.rows[0] returns {"id": "", "name": "", "scientific_name":""};
     if (editQueryErr) {
@@ -289,7 +308,7 @@ app.put('/species/:id/edit', (req, res) => {
  */
 app.delete('species/:id/edit', (req, res) => {
   const { id } = req.params;
-
+  console.log(id);
   const deleteSpeciesQuery = `DELETE FROM species WHERE id='${id}'`;
 
   pool.query(deleteSpeciesQuery, (deleteQueryErr, deleteQueryRes) => {

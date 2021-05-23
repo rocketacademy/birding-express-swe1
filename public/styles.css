@@ -11,6 +11,9 @@ html {
   --white: #f5f4ed;
   --yellow: #e5e89a;
   --light-green: #cdceba;
+  --light-green-30: rgb(205, 206, 186, 0.3);
+  --dark-green-30: rgb(58, 56, 44, 0.3);
+  --dark-green-60: rgb(58, 56, 44, 0.6);
   --dark-green: #39372c;
 }
 
@@ -23,15 +26,37 @@ h1 {
 }
 
 p,
-body {
+body,
+a,
+.btn,
+.btn-link {
   font-family: var(--monospace);
   font-size: 12px;
 }
 
-a {
+.btn-link {
+  border: none;
+  padding: 0;
+  margin: 0 16px;
+  cursor: pointer;
+  background-color: transparent;
+}
+
+form.nav-link {
+  display: inline;
+}
+
+a,
+.btn-link {
+  transition: color 0.5s ease;
+  color: var(--dark-green);
   text-decoration: none;
 }
 
+a:hover,
+.btn-link:hover {
+  color: var(--dark-green-60);
+}
 /* ====== CONTENT ====== */
 
 body {
@@ -39,40 +64,142 @@ body {
   color: var(--black);
 }
 
-/* ====== HEADER ====== */
+/* ====== BUTTON STYLES ====== */
 
-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-nav a.hidden {
-  display: none;
-}
-
-nav a.visible {
+a.btn,
+button.btn {
+  padding: 8px 12px;
+  margin-right: 16px;
+  background-color: var(--light-green);
+  cursor: pointer;
+  border: none;
+  transition: background-color 0.5s ease;
   display: inline;
 }
 
-nav {
-  display: flex;
-  justify-content: space-evenly;
-  width: 50vh;
+a.btn:hover,
+button.btn:hover {
+  background-color: var(--dark-green-30);
 }
 
-/* ====== HOMEPAGE CARDS ====== */
+/* ====== HEADER ====== */
+
+header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 6;
+
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  height: 64px;
+
+  background-color: var(--white);
+  transition: background-color 1s ease;
+}
+
+header.scrolled {
+  background-color: var(--white);
+}
+
+header nav.right {
+  width: 200px;
+  text-align: right;
+}
+
+header nav.left {
+  width: 200px;
+  text-align: left;
+}
+
+header a {
+  margin: 0 0 0 16px;
+  /* margin left */
+}
+
+/* ====== EYES ====== */
+
+div.face {
+  height: 59px;
+  width: 59px;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  position: relative;
+  /*position the irises in relation to the face*/
+  z-index: 2;
+}
+
+div.iris {
+  position: absolute;
+  /* already precalculated where the black iris circles sit in relation to the image // coordinates of SVG */
+  top: 23px;
+  left: 11px;
+  z-index: 2;
+}
+
+div.iris-right {
+  left: 49px;
+}
+
+/* actual dots inside the eye  */
+div.iris div {
+  position: relative;
+  z-index: 4;
+  top: 0;
+  left: 0;
+  width: 6px;
+  height: 6px;
+  background-color: #052837;
+  border-radius: 3px;
+  transform: translate(-50%, -50%);
+  /*top left corners of the irises in the middle, rather than the center of the eye, which is a little offset. The transform: translate(-50%, -50%) is to move the irises right into the center. So, basically the top and left properties set the top left corner to where we want, and then the transform property moves the tag back over by half its width and height to be central*/
+}
+
+/* ====== PAGE CONTAINER ====== */
+
+.wrapper {
+  margin: 64px auto auto auto;
+  max-width: 1080px;
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+/* ====== HOMEPAGE (LOGIN)  ====== */
+
+section.welcome,
+section.img-div {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 50vh;
+}
+
+section.img-div {
+  display: flex;
+  text-align: center;
+  justify-content: center;
+  align-items: center;
+  max-width: 450px;
+  width: 100vw;
+  margin: auto;
+}
+
+/* ====== HOMEPAGE (DASHBOARD) ====== */
 
 .cards {
+  margin: 64px auto auto auto;
   max-width: 1080px;
-  margin-left: auto;
-  margin-right: auto;
 
   padding-left: 16px;
   padding-right: 16px;
 
   display: flex;
   flex-wrap: wrap;
+  justify-content: space-between;
   align-items: flex-end;
   justify-content: center;
 }
@@ -80,7 +207,7 @@ nav {
 .card,
 .card img {
   width: 250px;
-  min-height: 400px;
+  height: 400px;
   object-fit: cover;
   position: relative;
 }
@@ -144,16 +271,16 @@ nav {
 }
 .row {
   display: table-row;
-  background: #f6f6f6;
+  background: var(--white);
 }
 
 .row:nth-of-type(odd) {
-  background: #e9e9e9;
+  background: var(--light-green-30);
 }
 
 .row.header {
   font-weight: 900;
-  background: #ea6153;
+  background: var(--yellow);
 }
 
 @media screen and (max-width: 580px) {
@@ -181,4 +308,23 @@ nav {
     padding: 2px 16px;
     display: block;
   }
+}
+
+/* CREATE NOTE – BEHAVIOR BINGO */
+
+.behavior-div {
+  max-width: 960px;
+}
+
+.checkbox-div {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  grid-auto-flow: dense;
+  margin-bottom: 16px;
+}
+
+.box {
+  grid-column: span 1;
+  grid-row: span 1;
 }

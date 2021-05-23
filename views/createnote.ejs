@@ -9,11 +9,12 @@
     <title>Create New Note</title>
   </head>
   <body>
-    <%- include('../templates/header'); -%>
+    <%- include('../templates/header-user'); -%>
     <h1>Create New Note</h1>
 
     <div class="container">
       <form action="/note" method="POST">
+        <!-- Input fields -->
         <div class="input-div">
           <label for="type_of_owl">Type of Owl</label>
           <input type="text" name="type_of_owl" />
@@ -44,6 +45,22 @@
           <input type="text" name="location" />
         </div>
 
+        <!-- Behavior Bingo -->
+        <div class="behavior-div">
+          <h2>Behavior Bingo</h2>
+          <div class="checkbox-div">
+            <% array.forEach( ( object ) => { %>
+            <div class="box">
+              <input
+                type="checkbox"
+                name="behavior_ids"
+                value="<%= object.id %> "
+              />
+              <label><%= object.behavior %> </label>
+            </div>
+            <% }) %>
+          </div>
+        </div>
         <button type="submit" value="submit">Submit</button>
       </form>
     </div>
