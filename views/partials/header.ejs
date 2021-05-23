@@ -58,6 +58,18 @@
                 <li class="nav-item">
                   <a class="nav-link" href="/note/create">Add a Note</a>
                 </li>
+
+                <% if (typeof user === 'string' && user) { %>
+                <li>
+                  <form action="/logout" method="POST">
+                    <input type="submit" value="log out" name="logout" id="" />
+                  </form>
+                </li>
+                <% } else { %>
+                <li class="nav-item">
+                  <a class="nav-link" href="/login">Log In</a>
+                </li>
+                <% } %>
               </ul>
               <form class="form-inline my-2 my-lg-0 d-flex flex-column">
                 <input

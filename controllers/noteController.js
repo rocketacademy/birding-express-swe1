@@ -28,6 +28,7 @@ export const allNotesController = (req, res) => {
           title: 'All Notes',
           instructions: 'Display all notes here',
           data: results.rows,
+          user: req.cookies.user,
         });
     }
   });
@@ -35,7 +36,10 @@ export const allNotesController = (req, res) => {
 
 // NEW NOTE FORM
 export const createNoteController = (req, res) => {
-  res.status(200).render('homeViews/createNote');
+  if (!req.cookies.user) {
+    res.status(403).redirect('http://localhost:3000/login');
+  }
+  res.status(200).render('homeViews/createNote', { user: req.cookies.user });
 };
 
 // FORM POST CONTROLLER
@@ -107,6 +111,7 @@ export const singleNoteController = async (req, res) => {
       title: 'Single Note',
       instructions: 'To render a single note here',
       data: rows,
+      user: req.cookies.user,
     });
 };
 
@@ -130,6 +135,7 @@ export const editNoteController = async (req, res) => {
 
   res.render('noteViews/editNote', {
     data: rows,
+    user: req.cookies.user,
   });
 };
 

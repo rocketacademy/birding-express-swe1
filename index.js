@@ -1,5 +1,6 @@
 /* eslint-disable no-underscore-dangle */
 import express from 'express';
+import cookieParser from 'cookie-parser';
 import path from 'path';
 
 import {} from 'dotenv/config';
@@ -13,6 +14,7 @@ const __dirname = path.resolve('.');
 // INITIALISING THE SERVER
 const app = express();
 
+app.use(cookieParser());
 app.set('view engine', 'ejs');
 // app.set('views', path.join(__dirname, 'views'));
 app.set('views', './views');
