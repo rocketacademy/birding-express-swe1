@@ -10,26 +10,28 @@
   </head>
   <body>
     <%- include('../templates/header-user'); -%>
-    <h1>Singapore Owl Species</h1>
-
-    <div class="wrapper">
-      <div class="table">
-        <div class="row header">
-          <div class="cell"></div>
-          <div class="cell">Common Name</div>
-          <div class="cell">Scientific Name</div>
-        </div>
-
-        <% array.forEach( (object) => { %>
-        <div class="row">
-          <div class="cell">
-            <a href="/species/<%= object.id %>/edit">✏️</a>
+    <div class="wrapper center-align">
+      <h1>Singapore Owl Species</h1>
+      <div class="table-wrapper">
+        <div class="table">
+          <div class="row header">
+            <div class="cell"></div>
+            <div class="cell">Common Name</div>
+            <div class="cell">Scientific Name</div>
           </div>
-          <div class="cell"><%= object.name %></div>
-          <div class="cell"><%= object.scientific_name %></div>
+
+          <% array.forEach( (object) => { %>
+          <div class="row">
+            <div class="cell">
+              <a href="/species/<%= object.id %>/edit">✏️</a>
+            </div>
+            <div class="cell"><%= object.name %></div>
+            <div class="cell"><%= object.scientific_name %></div>
+          </div>
+          <% }) %>
         </div>
-        <% }) %>
       </div>
+      <a href="/species/" class="btn">Add Species</a>
     </div>
   </body>
 </html>

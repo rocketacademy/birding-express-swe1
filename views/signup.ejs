@@ -8,10 +8,10 @@
     <title>Sign Up</title>
     <link rel="stylesheet" href="/styles.css" />
   </head>
-  <body>
+  <body class="form">
     <%- include('../templates/header'); -%>
 
-    <section class="container">
+    <section class="wrapper">
       <div class="form-div">
         <h1>Sign Up</h1>
         <form action="/signup" method="POST">
@@ -30,7 +30,7 @@
             <input type="password" name="password" />
           </div>
 
-          <button type="submit" value="signup">Sign Up</button>
+          <button type="submit" value="signup" class="btn">Sign Up</button>
         </form>
       </div>
 

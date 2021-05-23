@@ -8,43 +8,44 @@
     <link rel="stylesheet" href="/styles.css" />
     <title>Create New Note</title>
   </head>
-  <body>
+  <body class="form">
     <%- include('../templates/header-user'); -%>
-    <h1>Create New Note</h1>
 
-    <div class="container">
+    <div class="wrapper form-div">
+      <h1>Add Note</h1>
       <form action="/note" method="POST">
         <!-- Input fields -->
-        <div class="input-div">
-          <label for="type_of_owl">Type of Owl</label>
-          <input type="text" name="type_of_owl" />
-        </div>
+        <div class="free-text-form">
+          <div class="input-div">
+            <label for="type_of_owl">Type of Owl</label>
+            <input type="text" name="type_of_owl" />
+          </div>
 
-        <div class="input-div">
-          <label for="photo">Photo</label>
-          <input type="text" name="photo" />
-        </div>
+          <div class="input-div">
+            <label for="photo">Photo</label>
+            <input type="text" name="photo" />
+          </div>
 
-        <div class="input-div">
-          <label for="date">Date</label>
-          <input type="date" name="date" />
-        </div>
+          <div class="input-div">
+            <label for="date">Date</label>
+            <input type="date" name="date" />
+          </div>
 
-        <div class="input-div">
-          <label for="spotter">Spotter</label>
-          <input type="text" name="spotter" />
-        </div>
+          <div class="input-div">
+            <label for="spotter">Spotter</label>
+            <input type="text" name="spotter" />
+          </div>
 
-        <div class="input-div">
-          <label for="cuteness_factor">Cuteness Factor</label>
-          <input type="number" name="cuteness_factor" />
-        </div>
+          <div class="input-div">
+            <label for="cuteness_factor">Cuteness Factor</label>
+            <input type="number" name="cuteness_factor" />
+          </div>
 
-        <div class="input-div">
-          <label for="location">Location</label>
-          <input type="text" name="location" />
+          <div class="input-div">
+            <label for="location">Location</label>
+            <input type="text" name="location" />
+          </div>
         </div>
-
         <!-- Behavior Bingo -->
         <div class="behavior-div">
           <h2>Behavior Bingo</h2>
@@ -56,12 +57,14 @@
                 name="behavior_ids"
                 value="<%= object.id %> "
               />
+              <span class="checkmark"></span>
               <label><%= object.behavior %> </label>
             </div>
             <% }) %>
           </div>
         </div>
-        <button type="submit" value="submit">Submit</button>
+
+        <button type="submit" value="submit" class="btn">Submit</button>
       </form>
     </div>
   </body>

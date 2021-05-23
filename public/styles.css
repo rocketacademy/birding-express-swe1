@@ -67,7 +67,8 @@ body {
 /* ====== BUTTON STYLES ====== */
 
 a.btn,
-button.btn {
+button.btn,
+.hero-btn {
   padding: 8px 12px;
   margin-right: 16px;
   background-color: var(--light-green);
@@ -75,6 +76,7 @@ button.btn {
   border: none;
   transition: background-color 0.5s ease;
   display: inline;
+  text-align: center;
 }
 
 a.btn:hover,
@@ -82,6 +84,10 @@ button.btn:hover {
   background-color: var(--dark-green-30);
 }
 
+.hero-btn {
+  background-color: var(--light-green-30);
+  max-width: fit-content;
+}
 /* ====== HEADER ====== */
 
 header {
@@ -162,10 +168,21 @@ div.iris div {
 /* ====== PAGE CONTAINER ====== */
 
 .wrapper {
-  margin: 64px auto auto auto;
+  display: flex;
+  flex-direction: column;
+  margin: 100px auto;
   max-width: 1080px;
-  padding-left: 16px;
-  padding-right: 16px;
+}
+
+.wrapper-center {
+  align-items: center;
+  min-width: 700px;
+}
+.center-align {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
 }
 
 /* ====== HOMEPAGE (LOGIN)  ====== */
@@ -174,16 +191,15 @@ section.welcome,
 section.img-div {
   display: flex;
   flex-direction: column;
+  align-items: center;
   justify-content: center;
   height: 50vh;
 }
 
 section.img-div {
-  display: flex;
   text-align: center;
-  justify-content: center;
   align-items: center;
-  max-width: 450px;
+  max-width: 400px;
   width: 100vw;
   margin: auto;
 }
@@ -253,7 +269,7 @@ section.img-div {
 
 /* ====== TABLE ====== */
 
-.wrapper {
+.table-wrapper {
   margin: 0 auto;
   padding: 40px;
   max-width: 800px;
@@ -310,21 +326,74 @@ section.img-div {
   }
 }
 
-/* CREATE NOTE – BEHAVIOR BINGO */
+/* ====== CREATE NOTE – BEHAVIOR BINGO ====== */
 
 .behavior-div {
   max-width: 960px;
 }
 
+.behavior-div h2 {
+  margin: 24px 0;
+}
 .checkbox-div {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 12px;
   grid-auto-flow: dense;
   margin-bottom: 16px;
+  grid-auto-rows: 60px;
 }
 
 .box {
   grid-column: span 1;
   grid-row: span 1;
+  cursor: pointer;
+  padding: 8px;
+  display: flex;
+}
+
+.box:hover {
+  background-color: var(--light-green-30);
+}
+
+/* ====== FORM ====== */
+
+body.form {
+  background-color: var(--light-green);
+}
+
+.form-div {
+  max-width: 400px;
+  padding: 32px;
+  border: solid 2px var(--dark-green);
+  background-color: var(--white);
+}
+
+.form-div h1 {
+  margin: 0 0 24px 0;
+}
+
+.input-div {
+  display: flex;
+  flex-direction: column;
+  margin: 0 0 12px 0;
+}
+
+input {
+  background-color: transparent;
+  border: none;
+  outline: none;
+  border-bottom: solid 1px var(--dark-green);
+  padding: 8px 0 2px 0;
+  font-family: var(--monospace);
+  font-size: 14px;
+  color: var(--dark-green);
+}
+
+label {
+  color: var(--dark-green-60);
+}
+
+.free-text-form {
+  margin: 0 0 24px 0;
 }
