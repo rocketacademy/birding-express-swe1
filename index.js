@@ -1,4 +1,7 @@
-/* ================================================================== IMPORT MODULES = */
+/* ============================================================================ */
+/* =========================================================== IMPORT MODULES = */
+/* ============================================================================ */
+
 // express / server stuff
 import express from 'express';
 import methodOverride from 'method-override'; // npm install method-override
@@ -11,7 +14,10 @@ import jsSHA from 'jssha';
 // postgres / database stuff
 import pg from 'pg'; // npm install pg
 
-/* ================================================================== DATABASE SET UP */
+/* ============================================================================ */
+/* ============================================================ DATABASE SET UP */
+/* ============================================================================ */
+
 // Initialise the DB connection
 const { Pool } = pg;
 const pgConnectionConfigs = {
@@ -22,7 +28,10 @@ const pgConnectionConfigs = {
 };
 const pool = new Pool(pgConnectionConfigs);
 
-/* ================================================================== EXPRESS AND EJS SET UP */
+/* ============================================================================ */
+/* ===================================================== EXPRESS AND EJS SET UP */
+/* ============================================================================ */
+
 // Initialise Express
 const app = express();
 const PORT = 3004;
@@ -41,38 +50,15 @@ app.set('view engine', 'ejs');
 // allow access to public directory
 app.use(express.static('public'));
 
-/* ================================================================== COOKIES SET UP */
+/* ============================================================================ */
+/* ============================================================= COOKIES SET UP */
+/* ============================================================================ */
+
 app.use(cookieParser());
 
+/* ============================================================================ */
 /* ================================================================== FUNCTIONS */
-/**
- * Outputs an array with table data
- * @param {Array} arrOfNameOfColumns takes in an array of the column names e.g. ['date_of_sighting', 'behaviour']
- * @returns {Array} returns an object with the column names as the key
- */
-const getColumnData = (arrOfNameOfColumns) => {
-  const returnObj = {};
-  return (req, res, next) => {
-  // Query using pg.Pool instead of pg.Client
-    arrOfNameOfColumns.forEach((e, i) => {
-      pool.query(`SELECT ${e} from notes`, (error, result) => {
-        if (error) {
-          console.log('Error executing query', error.stack);
-          res.status(503).send(result.rows);
-          return;
-        }
-        // add to object
-        returnObj[e] = result.rows;
-        // exit when ending loop
-        // needed to do this inside the pool.query function
-        if (arrOfNameOfColumns.length === i + 1) {
-          req.requestedDateFromColumn = returnObj;
-          next();
-        }
-      });
-    });
-  };
-};
+/* ============================================================================ */
 
 /**
  * Outputs a custom date and time format
@@ -121,7 +107,9 @@ const convertDate = (date, formatFrom, formatTo) => {
   }
 };
 
-/* ================================================================== MIDDLEWARE FUNCTIONS */
+/* ============================================================================ */
+/* ======================================================= MIDDLEWARE FUNCTIONS */
+/* ============================================================================ */
 
 /**
  * Check if user is logged in
@@ -145,26 +133,12 @@ const getUserNameAndIdCookie = (req, res, next) => {
   req.userId = req.cookies.userId;
   next();
 };
-/*
- * PRECIOUS CALLBACK FUNCTION
-*/
-const selectDataSqlQuery = (sqlQuery, callback) => {
-  pool.query(sqlQuery, (error, result) => {
-    if (error) {
-      // handle errors own way
-      callback(error, null);
-      return;
-    }
-    const data = result.rows;
-    callback(null, data);
-  });
-};
 
-/* =========================================================================================== */
-/* ==================================================================================== ROUTES */
-/* =========================================================================================== */
+/* ============================================================================ */
+/* ===================================================================== ROUTES */
+/* ============================================================================ */
 
-/* ================================================================ SIGN UP */
+/* =========================================================== SIGN UP */
 // SIGN UP
 app.get('/sign-up', (req, res) => {
   // render
@@ -199,7 +173,7 @@ app.post('/sign-up', (req, res) => {
   });
 });
 
-/* ============================================================== USER LOGIN / LOG OUT */
+/* ============================================== USER LOGIN / LOG OUT */
 // LOGIN
 app.get('/login', (req, res) => {
   // render
@@ -268,7 +242,7 @@ app.delete('/logout', (req, res) => {
   res.redirect('/login');
 });
 
-/* ================================================================= CHECK FOR COOKIES */
+/* ================================================= CHECK FOR COOKIES */
 app.all('*', checkIfLoggedIn, (req, res, next) => {
   console.log('In check route');
 
@@ -283,12 +257,13 @@ app.all('*', checkIfLoggedIn, (req, res, next) => {
   res.redirect('/login');
 });
 
-/* ================================================================== OTHER PAGES */
+/* ======================================================= OTHER PAGES */
 // ------------------------------ HOMEPAGE
 app.get('/', getUserNameAndIdCookie, (req, res) => {
   // get cookie data
   const { userName } = req;
   const { userId } = req;
+
   // get data
   const sqlQuery = 'SELECT id, date_of_sighting, flock_size FROM notes';
   pool.query(sqlQuery, (error, result) => {
@@ -297,7 +272,9 @@ app.get('/', getUserNameAndIdCookie, (req, res) => {
       res.status(503).send(result.rows);
       return;
     }
+
     const dataArr = { arr: result.rows };
+
     // the date is in ISO 8601 format. we need to use moment to convert
     // it to a readable format for the form
     let dateOfSightingArr = [];
@@ -306,6 +283,7 @@ app.get('/', getUserNameAndIdCookie, (req, res) => {
       dateOfSightingArr.push(refomatDateOfSighting);
     });
     dateOfSightingArr = { sightingArr: dateOfSightingArr };
+
     // render
     res.render('index', {
       dataArr, dateOfSightingArr, userName, userId,
@@ -423,12 +401,25 @@ app.get('/note/:id', getUserNameAndIdCookie, (req, res) => {
         return;
       }
       const selectedBird = { birdName: birdResult.rows[0].name };
-      // render
-      res.render('single-sighting', { dataForSelectedId, userId, selectedBird });
+
+      // query note_behaviour
+      const noteBehaviour = `SELECT behaviours.name FROM note_behaviour INNER JOIN behaviours ON behaviours.id = note_behaviour.behaviour_id WHERE note_behaviour.note_id=${id}`;
+      pool.query(noteBehaviour, (noteBehaviourError, noteBehaviourResult) => {
+        if (noteBehaviourError) {
+          console.log('Error executing query', noteBehaviourError.stack);
+          res.status(503).send(noteBehaviourResult.rows);
+          return;
+        }
+
+        const behavioursObj = { behavioursArr: noteBehaviourResult.rows };
+        // render
+        res.render('single-sighting', {
+          dataForSelectedId, userId, selectedBird, behavioursObj,
+        });
+      });
     });
   });
 });
-
 // -------------------------------- POST SIGHTING
 // get
 app.get('/note', getUserNameAndIdCookie, (req, res) => {
@@ -440,20 +431,32 @@ app.get('/note', getUserNameAndIdCookie, (req, res) => {
   const formMaxDate = { maxDate: getCustomDateAndTime('form') };
 
   // query for list of birds
-  const sqlQuery = 'SELECT * FROM species';
-  pool.query(sqlQuery, (err, data) => {
-    if (err) {
-      console.error('Error executing species query', err.stack);
-      res.status(503).send(data);
+  const speciesSqlQuery = 'SELECT * FROM species';
+  pool.query(speciesSqlQuery, (speciesErr, speciesData) => {
+    if (speciesErr) {
+      console.error('Error executing species query', speciesErr.stack);
+      res.status(503).send(speciesData);
       return;
     }
-    const birdSpecies = { birds: data.rows };
+    const birdSpeciesObj = { birds: speciesData.rows };
 
-    // render
-    res.render('note', { formMaxDate, userId, birdSpecies });
+    // query for list of behaviours
+    const behavioursSqlQuery = 'SELECT * FROM behaviours';
+    pool.query(behavioursSqlQuery, (behavioursErr, behavioursData) => {
+      if (behavioursErr) {
+        console.error('Error executing species query', behavioursErr.stack);
+        res.status(503).send(behavioursData);
+        return;
+      }
+      const behavioursObj = { behaviours: behavioursData.rows };
+
+      // render
+      res.render('note', {
+        formMaxDate, userId, birdSpeciesObj, behavioursObj,
+      });
+    });
   });
 });
-
 // post
 app.post('/note', getUserNameAndIdCookie, (req, res) => {
   // get cookie data
@@ -461,20 +464,57 @@ app.post('/note', getUserNameAndIdCookie, (req, res) => {
   const { userId } = req;
 
   // get sighting submission
-  const dataObj = req.body;
-  // Add new  data in sql database
-  const inputData = [dataObj.date_of_sighting, dataObj.appearance, dataObj.behaviour, dataObj.flock_size, userId, dataObj.species_id];
-  const sqlQuery = 'INSERT INTO notes (date_of_sighting, appearance, behaviour, flock_size, user_id, species_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *';
-  pool.query(sqlQuery, inputData, (error, result) => {
-    if (error) {
-      console.error('Error executing query', error.stack);
-      res.status(503).send(result.rows);
+  let formData = req.body;
+  // console.log(formDataArr);
+
+  // if one check box is ticked it comes in as a string
+  // this ensures that we always get an array
+  if (formData.length <= 1) {
+    formData = [formData];
+  }
+
+  // Add new  data in notes table
+  const notesInputData = [formData.date_of_sighting, formData.species_id, formData.flock_size, formData.appearance, userId];
+  const insertNotesSqlQuery = 'INSERT INTO notes (date_of_sighting, species_id, flock_size, appearance, user_id) VALUES ($1, $2, $3, $4, $5) RETURNING *';
+  pool.query(insertNotesSqlQuery, notesInputData, (NotesError, NotesResult) => {
+    if (NotesError) {
+      console.error('Error executing query', NotesError.stack);
+      res.status(503).send(NotesResult.rows);
       return;
     }
     // acknowledge save
-    console.log(result.rows);
-    // Redirect
-    res.redirect('/form-submit-successful');
+    console.log(NotesResult.rows);
+
+    // add new data into note_behaviour join table
+    const currentNoteId = NotesResult.rows[0].id;
+    const noteBehaviourDataArr = formData.behaviour_id;
+
+    // Counter for query in loop below
+    let queryDoneCounter = 0;
+
+    noteBehaviourDataArr.forEach((e) => {
+      const noteBehaviourInput = [currentNoteId, e];
+      const insertNoteBehaviourSqlQuery = 'INSERT INTO note_behaviour (note_id, behaviour_id) VALUES ($1, $2)';
+      pool.query(insertNoteBehaviourSqlQuery, noteBehaviourInput, (notesBehaviourError, notesBehaviourResult) => {
+        // increase counter
+        queryDoneCounter += 1;
+
+        // check to see if all the queries are done
+        if (queryDoneCounter === noteBehaviourDataArr.length) {
+          // TODO: check if any of the queries had errors.
+          if (notesBehaviourError) {
+            console.error('Error executing insert dish', notesBehaviourError.stack);
+            res.status(503).send(notesBehaviourError);
+            return;
+          }
+          // all the queries are done, send a response.
+          console.log('SUBMISSION SUCCESS!');
+          console.log(notesBehaviourResult.rows);
+          // redirect
+          res.redirect('/form-submit-successful');
+        }
+      });
+    });
   });
 });
 
@@ -537,9 +577,43 @@ app.get('/note/:id/edit', getUserNameAndIdCookie, (req, res) => {
         }
         const birdSpecies = { birds: birdsData.rows };
 
-        // render
-        res.render('edit', {
-          dataForSelectedId, formMaxDate, userId, birdSpecies, previousSelectedBird,
+        // query for list of behaviours
+        const behavioursSqlQuery = 'SELECT * FROM behaviours';
+        pool.query(behavioursSqlQuery, (behavioursErr, behavioursData) => {
+          if (behavioursErr) {
+            console.error('Error executing species query', behavioursErr.stack);
+            res.status(503).send(behavioursData);
+            return;
+          }
+          const behavioursObj = { behaviours: behavioursData.rows };
+
+          // query for checked or unchecked
+          const checkUnheckSqlQuery = `SELECT note_behaviour.behaviour_id FROM behaviours INNER JOIN note_behaviour ON note_behaviour.behaviour_id = behaviours.id WHERE note_behaviour.note_id = ${id}`;
+          pool.query(checkUnheckSqlQuery, (checkUncheckErr, checkUncheckResult) => {
+            const behaviourIdData = checkUncheckResult.rows;
+            console.log('BEHAVIOUR ID:');
+            console.log(behaviourIdData);
+
+            // logic to check if checked or not
+            behavioursObj.behaviours.forEach((e) => {
+              // set all to uncheck first
+              e.checked = false;
+              // check if checked or not
+              behaviourIdData.forEach((j) => {
+                if (j.behaviour_id === e.id) {
+                  e.checked = true;
+                }
+              });
+            });
+
+            // test
+            console.log('ALL BEHAVIOURS WITH CHECK KEY');
+            console.log(behavioursObj.behaviours);
+            // render
+            res.render('edit', {
+              dataForSelectedId, behavioursObj, formMaxDate, userId, birdSpecies, previousSelectedBird,
+            });
+          });
         });
       });
     });
@@ -552,26 +626,72 @@ app.put('/note/:id/edit', (req, res) => {
   const { id } = req.params;
   // get updated data
   const editedForm = req.body;
+
+  let behaviourIdArr = editedForm.behaviour_id;
+
+  // if one check box is ticked it comes in as a string
+  // this ensures that we always get an array
+  if (behaviourIdArr.length <= 1) {
+    behaviourIdArr = [behaviourIdArr];
+  }
   console.log('EDITED FORM !!!!!!!!!!!!!!!!!!');
   console.log(editedForm);
-  // update DB
-  const sqlQuery = `UPDATE notes SET
+
+  // update notes table
+  const notesSqlQuery = `UPDATE notes SET
   date_of_sighting = '${editedForm.date_of_sighting}',
-  appearance = '${editedForm.appearance}',
-  behaviour = '${editedForm.behaviour}',
+  species_id = ${editedForm.species_id},
   flock_size = '${editedForm.flock_size}',
-  species_id = ${editedForm.species_id}
+  appearance = '${editedForm.appearance}',
+  user_id = ${id}
   WHERE id = ${id}
   RETURNING *`;
-  pool.query(sqlQuery, (error, result) => {
-    if (error) {
-      console.log('Error executing edit for form', error.stack);
-      res.status(503).send(result.rows);
+  pool.query(notesSqlQuery, (notesErr, notesResult) => {
+    if (notesErr) {
+      console.log('Error executing edit for form', notesErr.stack);
+      res.status(503).send(notesResult.rows);
       return;
     }
-    console.log(`Success in edit! :${result.rows}`);
-    // re-direct
-    res.redirect(`/note/${id}`);
+    console.log(`Success in edit! :${notesResult.rows}`);
+
+    // delete rows in note_behaviour where recipe_id = X;
+    const deleteRowSqlQuery = `DELETE FROM note_behaviour WHERE note_id = ${id}`;
+    pool.query(deleteRowSqlQuery, (deleteError, deleteResult) => {
+      if (deleteError) {
+        console.error('delete error', deleteError.stack);
+        res.status(503).send(deleteResult.rows);
+      }
+
+      // add rows in note_behaviour;
+      // Counter for query in loop below
+      let queryDoneCounter = 0;
+
+      // Add into note_id and behaviour_id in note_behaviour table
+      behaviourIdArr.forEach((e) => {
+      // the ids are strings so we have to convert them into integers
+        const behaviourIdData = [id, Number(e)];
+        const sqlInsertNoteBehaviourTable = 'INSERT INTO note_behaviour (note_id, behaviour_id) VALUES ($1,$2) RETURNING*';
+        pool.query(sqlInsertNoteBehaviourTable, behaviourIdData, (noteBehaviourError, noteBehaviourResult) => {
+        // increase counter
+          queryDoneCounter += 1;
+          // acknowledge save
+
+          // check to see if all the queries are done
+          if (queryDoneCounter === behaviourIdArr.length) {
+          // TODO: check if any of the queries had errors.
+            if (noteBehaviourError) {
+              console.error('Error executing insert dish', noteBehaviourError.stack);
+              res.status(503).send(noteBehaviourError);
+              return;
+            }
+            // all the queries are done, send a response.
+            console.log('EDIT SUCCESS!');
+            console.log(noteBehaviourResult.rows);
+            res.redirect(`/note/${id}`);
+          }
+        });
+      });
+    });
   });
 });
 
@@ -591,5 +711,7 @@ app.delete('/note/:id', (req, res) => {
   });
 });
 
-/* ================================================================== LISTEN */
+/* ============================================================================ */
+/* ===================================================================== LISTEN */
+/* ============================================================================ */
 app.listen(PORT);

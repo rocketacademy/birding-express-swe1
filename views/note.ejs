@@ -18,23 +18,23 @@
           <div class="form-group">
             <div class="row form-row">
               <div class="col form-col">
-                <label for="date_of_sighting">Date of sighting:</label>
+                <label for="date_of_sighting"><strong>Date Of Sighting</strong></label>
                 <input type="date" max= <%= formMaxDate.maxDate %>  id="date_of_sighting" name="date_of_sighting" class="form-control" required>
                 <div class="invalid-feedback">Please provide a date</div>
               </div>
             </div>
 
             <div class="row form-row">
-              <label for="species_id">Bird Species</label>
+              <label for="species_id"><strong>Bird Species</strong></label>
               <select id="species_id" name="species_id" class="form-control" required>
-                <% birdSpecies.birds.forEach((bird) => { %>
+                <% birdSpeciesObj.birds.forEach((bird) => { %>
                   <option value = <%= bird.id %> ><%= bird.name %></option>
                 <% }); %>
               </select>
             </div>
 
             <div class="row form-row">
-              <label for="flock_size">Flock Size</label>
+              <label for="flock_size"><strong>Flock Size</strong>/label>
               <select id="flock_size" name="flock_size" class="form-control" required>
                 <option selected>1</option>
                 <option>1-5</option>
@@ -44,13 +44,17 @@
             </div>
 
           <div class="form-group form-medium">
-            <label for="appearance">Appearance</label>
+            <label for="appearance"><strong>Appearance</strong></label>
             <textarea class="form-control" rows="2" id="appearance" name="appearance" required>Try to keep this in one sentence</textarea>
           </div>
 
-          <div class="form-group form-medium">
-            <label for="behaviour">Behaviour</label>
-            <textarea class="form-control form-input-description" rows="4" id="behaviour" name="behaviour" required>Describe what the bird was doing</textarea>
+          <div class="form-group">
+            <p><strong>Behaviour/Behaviours</strong></p>
+            <% behavioursObj.behaviours.forEach((behaviour) => { %>
+            <label for = 'behaviour-type'><%= behaviour.name %></label>
+            <input id = 'behaviour-type' type="checkbox" name="behaviour_id" value="<%= behaviour.id %>" />
+            <br>
+            <% }); %>
           </div>
       
           <button type="submit" class="btn btn-primary btn-submit">Submit</button>

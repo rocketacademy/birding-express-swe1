@@ -33,12 +33,14 @@
         </div>
 
         <div class="col-12 my-col">
-          <p><strong>Behaviour </strong></p>
-          <p><%= dataForSelectedId.behaviour %></p>
+          <p><strong>Behaviour / Behaviours </strong></p>
+          <% behavioursObj.behavioursArr.forEach(behaviour => { %>
+            <span><%= behaviour.name %>, </span>
+          <% }); %>
         </div>
 
       </div>
-
+      <br>
       <div class = 'row my-row justify-content-center'>
         <div class="col-12 my-col">
           <a class="btn btn-primary btn-edit" href="/note/<%= dataForSelectedId.id %>/edit" role="button">Edit this post</a>
