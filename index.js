@@ -121,6 +121,30 @@ const convertDate = (date, formatFrom, formatTo) => {
   }
 };
 
+/* ================================================================== MIDDLEWARE FUNCTIONS */
+
+/**
+ * Check if user is logged in
+ * @returns {Booleanr} isUserLoggedIn (req.isUserLoggedIn)
+ */
+const checkIfLoggedIn = (req, res, next) => {
+  const loginCookie = Object.keys(req.cookies);
+  req.isUserLoggedIn = false;
+  if (loginCookie.includes('loggedIn')) {
+    req.isUserLoggedIn = true;
+  }
+  next();
+};
+
+/**
+ * Get cookie data
+ * @returns username (req.userName) & userId (req.userId)
+ */
+const getUserNameAndIdCookie = (req, res, next) => {
+  req.userName = req.cookies.userName;
+  req.userId = req.cookies.userId;
+  next();
+};
 /*
  * PRECIOUS CALLBACK FUNCTION
 */
@@ -136,11 +160,11 @@ const selectDataSqlQuery = (sqlQuery, callback) => {
   });
 };
 
-/* ========================================================================= */
-/* ================================================================== ROUTES */
-/* ========================================================================= */
+/* =========================================================================================== */
+/* ==================================================================================== ROUTES */
+/* =========================================================================================== */
 
-/* ================================================================== USER LOGIN / SIGN UP */
+/* ================================================================ SIGN UP */
 // SIGN UP
 app.get('/sign-up', (req, res) => {
   // render
@@ -170,21 +194,17 @@ app.post('/sign-up', (req, res) => {
     }
     // acknowledge save
     console.log(result.rows);
-    // Redirect
+    // Redirect to login page
     res.redirect('/login');
   });
 });
 
-let counter = 0;
+/* ============================================================== USER LOGIN / LOG OUT */
 // LOGIN
 app.get('/login', (req, res) => {
-  console.log(`In login route: ${counter}`);
   // render
   res.render('login');
-  counter += 1;
 });
-
-console.log('OUTSIDE LOGIN');
 
 app.post('/login', (req, res) => {
   console.log('request for login in');
@@ -224,43 +244,51 @@ app.post('/login', (req, res) => {
     }
 
     // if email exists and password is correct
-    // The user's password hash matches that in the DB and we authenticate the user.
     console.log('LOGGED IN');
-    // send cookie with user id
-    res.cookie('loggedIn', { userId: user.id, username: user.username });
+    // send cookies
+    // logged in cookie
+    res.cookie('loggedIn', true);
+    // user id cookie
+    res.cookie('userId', user.id);
+    // userName cookie
+    res.cookie('userName', user.username);
+    // redirect to homepage
     res.redirect('/');
   });
 });
 
 // LOG OUT
 app.delete('/logout', (req, res) => {
-  // delete cookie
+  // delete cookies
   res.clearCookie('loggedIn');
+  res.clearCookie('userId');
+  res.clearCookie('userName');
   console.log('LOGGED OUT!');
-  res.redirect('/');
+  // redirect to login page
+  res.redirect('/login');
 });
 
-/* ================================================================== CHECK */
-app.all('*', (req, res, next) => {
+/* ================================================================= CHECK FOR COOKIES */
+app.all('*', checkIfLoggedIn, (req, res, next) => {
   console.log('In check route');
-  // check if got login cookie
-  const loginCookie = Object.keys(req.cookies);
-  // console.log(loginCookie);
-  if (loginCookie.includes('loggedIn')) {
-    // console.log('Verified user!');
-    // console.log(`${Object.entries(req.cookies.loggedIn)}`);
+
+  // if there is a userName cookie it means there is a login cookie
+  if (req.isUserLoggedIn) {
     return next();
   }
+
+  // if don't have login cookie
   console.log('Unverified user! Proceed to login page');
+  // redirect to login
   res.redirect('/login');
 });
 
 /* ================================================================== OTHER PAGES */
-// HOMEPAGE
-app.get('/', (req, res) => {
+// ------------------------------ HOMEPAGE
+app.get('/', getUserNameAndIdCookie, (req, res) => {
   // get cookie data
-  const userName = req.cookies.loggedIn.username;
-  const { userId } = req.cookies.loggedIn;
+  const { userName } = req;
+  const { userId } = req;
   // get data
   const sqlQuery = 'SELECT id, date_of_sighting, flock_size FROM notes';
   pool.query(sqlQuery, (error, result) => {
@@ -285,11 +313,11 @@ app.get('/', (req, res) => {
   });
 });
 
-// SORTING FOR HOMEPAGE
-app.get('/:sort', (req, res, next) => {
+// ------------------------------- HOMEPAGE WITH SORTING
+app.get('/:sort', getUserNameAndIdCookie, (req, res, next) => {
   // get cookie data
-  const userName = req.cookies.loggedIn.username;
-  const { userId } = req.cookies.loggedIn;
+  const { userName } = req;
+  const { userId } = req;
   // sort database function
   const sortDataBase = (typeOfSortSql) => {
     const sqlQuery = `SELECT * FROM notes ORDER BY date_of_sighting ${typeOfSortSql}`;
@@ -331,13 +359,13 @@ app.get('/:sort', (req, res, next) => {
   }
 });
 
-// USER SIGHTINGS
-app.get('/users/:id', (req, res) => {
+// ------------------------------- USER SIGHTINGS
+app.get('/users/:id', getUserNameAndIdCookie, (req, res) => {
   // get url query
   const { id } = req.params;
   // get cookie data
-  const userName = req.cookies.loggedIn.username;
-  const { userId } = req.cookies.loggedIn;
+  const { userName } = req;
+  const { userId } = req;
   // get data
   const sqlQuery = `SELECT id, date_of_sighting, flock_size FROM notes WHERE user_id = ${id}`;
   pool.query(sqlQuery, (error, result) => {
@@ -362,10 +390,12 @@ app.get('/users/:id', (req, res) => {
   });
 });
 
-// SINGLE PAGES
-app.get('/note/:id', (req, res) => {
-  // get cookies
-  const { userId } = req.cookies.loggedIn;
+// -------------------------------- SINGLE PAGES
+app.get('/note/:id', getUserNameAndIdCookie, (req, res) => {
+  // get cookie data
+  // const { userName } = req;
+  const { userId } = req;
+
   // get id
   const { id } = req.params;
 
@@ -398,32 +428,38 @@ app.get('/note/:id', (req, res) => {
     });
   });
 });
-// POST SIGHTING
+
+// -------------------------------- POST SIGHTING
 // get
-app.get('/note', (req, res) => {
-  // get cookies
-  const { userId } = req.cookies.loggedIn;
+app.get('/note', getUserNameAndIdCookie, (req, res) => {
+  // get cookie data
+  // const { userName } = req;
+  const { userId } = req;
 
   // set max date for calendar input
   const formMaxDate = { maxDate: getCustomDateAndTime('form') };
 
   // query for list of birds
   const sqlQuery = 'SELECT * FROM species';
-  selectDataSqlQuery(sqlQuery, (err, data) => {
+  pool.query(sqlQuery, (err, data) => {
     if (err) {
-      console.error('Error executing query', err.stack);
+      console.error('Error executing species query', err.stack);
       res.status(503).send(data);
       return;
     }
-    const birdSpecies = { birds: data };
+    const birdSpecies = { birds: data.rows };
+
     // render
     res.render('note', { formMaxDate, userId, birdSpecies });
   });
 });
+
 // post
-app.post('/note', (req, res) => {
-  // get cookies
-  const { userId } = req.cookies.loggedIn;
+app.post('/note', getUserNameAndIdCookie, (req, res) => {
+  // get cookie data
+  // const { userName } = req;
+  const { userId } = req;
+
   // get sighting submission
   const dataObj = req.body;
   // Add new  data in sql database
@@ -442,18 +478,22 @@ app.post('/note', (req, res) => {
   });
 });
 
-// FORM SUBMISSION SUCCESS
-app.get('/form-submit-successful', (req, res) => {
-  // get cookies
-  const { userId } = req.cookies.loggedIn;
+// -------------------------------- FORM SUBMISSION SUCCESS
+app.get('/form-submit-successful', getUserNameAndIdCookie, (req, res) => {
+  // get cookie data
+  // const { userName } = req;
+  const { userId } = req;
+  // render
   res.render('form-submit-successful', { userId });
 });
 
-// EDIT SIGHTING
+// -------------------------------- EDIT SIGHTING
 // get
-app.get('/note/:id/edit', (req, res) => {
-  // get cookies
-  const { userId } = req.cookies.loggedIn;
+app.get('/note/:id/edit', getUserNameAndIdCookie, (req, res) => {
+  // get cookie data
+  // const { userName } = req;
+  const { userId } = req;
+
   // get id
   const { id } = req.params;
   // set max date for form
@@ -462,13 +502,14 @@ app.get('/note/:id/edit', (req, res) => {
 
   // query for notes
   const noteSqlQuery = `SELECT * FROM notes WHERE id= ${id}`;
-  selectDataSqlQuery(noteSqlQuery, (noteErr, noteData) => {
+  pool.query(noteSqlQuery, (noteErr, noteData) => {
     if (noteErr) {
       console.error('Error executing edit form query', noteErr.stack);
       res.status(503).send(noteData);
       return;
     }
-    const dataForSelectedId = noteData[0];
+
+    const dataForSelectedId = noteData.rows[0];
 
     // the date is in ISO 8601 format. we need to use moment to convert
     // it to a readable format for the form
@@ -476,24 +517,25 @@ app.get('/note/:id/edit', (req, res) => {
     dataForSelectedId.date_of_sighting = refomatDateOfSighting;
 
     // query for selected bird from previous form
-    const previousBirdSqlQuery = `SELECT species.name FROM notes INNER JOIN species ON notes.species_id = species.id WHERE notes.id = ${id}`;
-    selectDataSqlQuery(previousBirdSqlQuery, (singleBirdErr, singleBirdData) => {
+    const previousBirdSqlQuery = `SELECT species.name, species.id FROM notes INNER JOIN species ON notes.species_id = species.id WHERE notes.id = ${id}`;
+    pool.query(previousBirdSqlQuery, (singleBirdErr, singleBirdData) => {
       if (singleBirdErr) {
         console.error('Error executing single bird query', singleBirdErr.stack);
-        res.status(503).send(singleBirdData);
+        res.status(503).send(singleBirdData.rows);
         return;
       }
-      const previousSelectedBird = { selectedBird: singleBirdData[0].name };
+
+      const previousSelectedBird = { selectedBird: singleBirdData.rows[0] };
 
       // query for list of birds
       const birdsSqlQuery = 'SELECT * FROM species';
-      selectDataSqlQuery(birdsSqlQuery, (birdsErr, birdsData) => {
+      pool.query(birdsSqlQuery, (birdsErr, birdsData) => {
         if (birdsErr) {
           console.error('Error executing bird query', birdsErr.stack);
-          res.status(503).send(birdsData);
+          res.status(503).send(birdsData.rows);
           return;
         }
-        const birdSpecies = { birds: birdsData };
+        const birdSpecies = { birds: birdsData.rows };
 
         // render
         res.render('edit', {
@@ -501,22 +543,6 @@ app.get('/note/:id/edit', (req, res) => {
         });
       });
     });
-
-  // const sqlQuery = `SELECT * FROM notes WHERE id= ${id}`;
-  // pool.query(sqlQuery, (error, result) => {
-  //   if (error) {
-  //     console.log('Error executing query for edit form', error.stack);
-  //     res.status(503).send(result.rows);
-  //     return;
-  //   }
-  //   const dataForSelectedId = result.rows[0];
-  //   // the date is in ISO 8601 format. we need to use moment to convert
-  //   // it to a readable format for the form
-  //   const refomatDateOfSighting = convertDate(dataForSelectedId.date_of_sighting, 'ISO8601', 'YYYY-MM-DD');
-  //   dataForSelectedId.date_of_sighting = refomatDateOfSighting;
-  //   // render
-  //   res.render('edit', { dataForSelectedId, formMaxDate, userId });
-  // });
   });
 });
 
@@ -526,9 +552,17 @@ app.put('/note/:id/edit', (req, res) => {
   const { id } = req.params;
   // get updated data
   const editedForm = req.body;
+  console.log('EDITED FORM !!!!!!!!!!!!!!!!!!');
   console.log(editedForm);
   // update DB
-  const sqlQuery = `UPDATE notes SET date_of_sighting = '${editedForm.date_of_sighting}', appearance = '${editedForm.appearance}', behaviour = '${editedForm.behaviour}', flock_size = '${editedForm.flock_size}, ${editedForm.species_id}' WHERE id = ${id}`;
+  const sqlQuery = `UPDATE notes SET
+  date_of_sighting = '${editedForm.date_of_sighting}',
+  appearance = '${editedForm.appearance}',
+  behaviour = '${editedForm.behaviour}',
+  flock_size = '${editedForm.flock_size}',
+  species_id = ${editedForm.species_id}
+  WHERE id = ${id}
+  RETURNING *`;
   pool.query(sqlQuery, (error, result) => {
     if (error) {
       console.log('Error executing edit for form', error.stack);
@@ -541,7 +575,7 @@ app.put('/note/:id/edit', (req, res) => {
   });
 });
 
-// DELETE A SIGHTING
+// -------------------------------- DELETE A SIGHTING
 app.delete('/note/:id', (req, res) => {
   const { id } = req.params;
   const sqlQuery = `DELETE FROM notes WHERE id=${id}`;
@@ -559,5 +593,3 @@ app.delete('/note/:id', (req, res) => {
 
 /* ================================================================== LISTEN */
 app.listen(PORT);
-
-// Test if branch is working

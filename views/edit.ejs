@@ -27,7 +27,7 @@
             <div class="row form-row">
               <label for="species_id">Bird Species</label>
               <select id="species_id" name="species_id" class="form-control" required>
-                  <option selected><%= previousSelectedBird.selectedBird %> </option>
+                  <option selected value = <%= previousSelectedBird.selectedBird.id %>><%= previousSelectedBird.selectedBird.name %> </option>
                 <% birdSpecies.birds.forEach((bird) => { %>
                   <option value = <%= bird.id %> ><%= bird.name %></option>
                 <% }); %>
