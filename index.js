@@ -45,6 +45,10 @@ pool.connect();
 
 /* ============ HOMEPAGE =========== */
 
+app.get('/about', (req, res) => {
+  res.render('about');
+});
+
 app.get('/', (req, res) => {
   const loginMessage = 'not logged in';
 

@@ -10,23 +10,21 @@
   </head>
   <body class="form">
     <%- include('../templates/header-user'); -%>
-    <div class="wrapper wrapper-center">
-      <div class="form-div">
-        <h1>New Species</h1>
-        <form action="/species" method="POST">
-          <div class="input-div">
-            <label for="common_name">Commmon Name</label>
-            <input type="text" name="common_name" />
-          </div>
+    <div class="wrapper form-div">
+      <h1>New Species</h1>
+      <form action="/species" method="POST">
+        <div class="input-div">
+          <label for="common_name">Commmon Name</label>
+          <input type="text" name="common_name" />
+        </div>
 
-          <div class="input-div">
-            <label for="scientific_name">Scientific Name</label>
-            <input type="text" name="scientific_name" />
-          </div>
+        <div class="input-div">
+          <label for="scientific_name">Scientific Name</label>
+          <input type="text" name="scientific_name" />
+        </div>
 
-          <button type="submit" value="save" class="btn">Save</button>
-        </form>
-      </div>
+        <button type="submit" value="save" class="btn">Save</button>
+      </form>
     </div>
   </body>
 </html>

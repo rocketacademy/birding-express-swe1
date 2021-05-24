@@ -42,6 +42,10 @@ a,
   background-color: transparent;
 }
 
+.delete-btn {
+  margin: 12px 4px;
+}
+
 form.nav-link {
   display: inline;
 }
@@ -170,7 +174,7 @@ div.iris div {
 .wrapper {
   display: flex;
   flex-direction: column;
-  margin: 100px auto;
+  margin: 100px auto 0 auto;
   max-width: 1080px;
 }
 
@@ -376,7 +380,14 @@ body.form {
 .input-div {
   display: flex;
   flex-direction: column;
-  margin: 0 0 12px 0;
+  margin: 0 0 16px 0;
+}
+
+span.input,
+input {
+  font-family: var(--monospace);
+  font-size: 14px;
+  color: var(--dark-green);
 }
 
 input {
@@ -385,15 +396,46 @@ input {
   outline: none;
   border-bottom: solid 1px var(--dark-green);
   padding: 8px 0 2px 0;
-  font-family: var(--monospace);
-  font-size: 14px;
-  color: var(--dark-green);
 }
 
-label {
+label,
+span.label {
   color: var(--dark-green-60);
 }
 
 .free-text-form {
   margin: 0 0 24px 0;
+}
+
+.instead-div p {
+  margin: 12px 0 0 0;
+}
+
+.container-50 {
+  margin: 100px auto 0 auto;
+  max-width: 720px;
+}
+
+.container-50 h1 {
+  text-align: center;
+}
+
+.wrapper-50 {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-evenly;
+  align-items: stretch;
+}
+
+.form-50,
+.photo-50 {
+  width: 40vw;
+  height: 50vh;
+}
+
+.photo-50 img {
+  max-width: 30vw;
+  max-height: 62vh;
+  background-size: contain;
+  border: 2px solid var(--dark-green);
 }

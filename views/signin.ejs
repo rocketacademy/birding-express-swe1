@@ -11,8 +11,7 @@
   <body class="form">
     <%- include('../templates/header'); -%>
 
-    <section class="wrapper">
-      <div class="form-div">
+    <section class="wrapper form-div">
         <h1>Log In</h1>
         <form action="/login" method="POST">
           <div class="input-div">
@@ -30,8 +29,8 @@
       </div>
 
       <div class="instead-div">
-        <p>Don't have an account?</p>
-        <a href="/signup">Sign Up</a>
+        <p>Don't have an account? <span><a href="/signup">Sign up</a></span></p>
+      
       </div>
     </section>
   </body>
