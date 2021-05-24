@@ -110,18 +110,22 @@ app.post('/note', (req, res) => {
     // rows key has the data
     const noteId = addOwlQueryRes.rows[0].id;
 
-    behaviorIds.forEach((behaviorId) => {
+    let queryDoneCounter = 0;
+
+    behaviorIds.forEach((behaviorId, index) => {
       const addBehaviorToNoteQuery = `INSERT INTO behavior_note (note_id, behavior_id) VALUES ('${noteId}', '${behaviorId}') RETURNING * `;
 
       pool.query(addBehaviorToNoteQuery, (queryError, queryRes) => {
         if (queryError) {
           console.error(queryError);
         }
+        queryDoneCounter += 1;
+        if (queryDoneCounter === req.body.behavior_ids.length) {
+          // Redirect to confirmation page
+          res.redirect(303, `/note/confirm/${noteId}`);
+        }
       });
     });
-
-    // Redirect to confirmation page
-    res.redirect(303, `/note/confirm/${noteId}`);
   });
 });
 
@@ -129,6 +133,60 @@ app.get('/note/confirm/:id', (req, res) => {
   // req.params returns the id
   const { id } = req.params;
   res.render('confirmnote', { id });
+});
+
+/* ============ BEHAVIORS =========== */
+
+/**
+ * Calculate how many times it occurs inside the array
+ * @param {array} arr – Array of objects
+ * @returns {object} tally of number of times it appears
+ */
+const tallyBehaviors = (arr) => {
+  const listBehaviorsNotes = {};
+
+  arr.forEach((obj) => {
+    // Get the behavior name
+    const behaviorName = obj.behavior;
+
+    // See if we have one already recorded
+    // This behavior was not recorded before
+    if (listBehaviorsNotes[behaviorName] === undefined) {
+      const notesArr = [];
+      notesArr.push(obj.note_id);
+      listBehaviorsNotes[behaviorName] = notesArr;
+    } else {
+      listBehaviorsNotes[behaviorName].push(obj.note_id);
+    }
+  });
+  return listBehaviorsNotes;
+};
+
+/**
+ * Shows all behaviors in one page
+ */
+app.get('/behaviors', (req, res) => {
+  const listAllBehaviorsQuery = `SELECT behaviors.id, behaviors.behavior, behavior_note.note_id, behavior_note.behavior_id
+  FROM behaviors 
+  INNER JOIN behavior_note 
+  ON behaviors.id = behavior_note.behavior_id`;
+
+  pool.query(listAllBehaviorsQuery, (listBehaviorsErr, listBehaviorsRes) => {
+    if (listBehaviorsErr) {
+      console.error(listBehaviorsErr);
+      return;
+    }
+    // listBehaviorsRes.rows returns array of objects
+    // { "id": 3, "behavior": "Preening", "note_id": 52, "behavior_id": 3 }
+    const tally = tallyBehaviors(listBehaviorsRes.rows);
+    // Returns object { behavior1: [1,2,3], behavior2: [3,4,5]}
+
+    const tallyKeys = Object.keys(tally);
+    const tallyValues = Object.values(tally);
+
+    // res.send(tallyValues);
+    res.render('behaviors', { keys: tallyKeys, values: tallyValues });
+  });
 });
 
 /* ============ READ EXISTING NOTE =========== */
