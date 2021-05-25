@@ -189,6 +189,26 @@ app.get('/behaviors', (req, res) => {
   });
 });
 
+/* ============ COMMENTS =========== */
+
+app.post('/note/:id', (req, res) => {
+  console.log(req.cookies.userId);
+  const { userId } = req.cookies;
+  const { comment } = req.body;
+  const { id: noteId } = req.params;
+
+  const addCommentQuery = `INSERT INTO comments (note_id, comment, user_id) VALUES ('${noteId}','${comment}','${userId}') RETURNING *`;
+  console.log(addCommentQuery);
+
+  pool.query(addCommentQuery, (addErr, addRes) => {
+    if (addErr) {
+      console.error(addErr);
+      return;
+    }
+    res.redirect(303, `/note/${noteId}`);
+  });
+});
+
 /* ============ READ EXISTING NOTE =========== */
 
 app.get('/note/:id', (req, res) => {
@@ -196,15 +216,31 @@ app.get('/note/:id', (req, res) => {
 
   const getRowSqlQuery = `SELECT * FROM notes WHERE id=${id}`;
 
+  // const listCommentQuery = `SELECT * FROM comments WHERE note_id=${id}`;
+
   pool.query(getRowSqlQuery, (getRowSqlErr, getRowSqlRes) => {
     if (getRowSqlErr) {
       res.send('Sorry, we couldn\'t find your owl!');
       return;
     }
+    // pool.query(listCommentQuery, (listCommentErr, listCommentRes) => {
+    //   // If comments exist
+
+    //   // if (listCommentRes) {
+    //   // const { listCommentRes.rows }
+    //   //   console.error(listCommentErr);
+    //   //   return;
+    //   // }
+
+    //   console.log(listCommentRes.rows);
+    // Returns array of objects
+    // [ { id: 1, note_id: 2, comment: 'Birds are cute', user_id: 2 } ]
+
     const {
       id,
       type_of_owl: owlType,
       photo,
+
       date,
       spotter,
       cuteness_factor: cuteness,
@@ -216,6 +252,15 @@ app.get('/note/:id', (req, res) => {
     });
   });
 });
+
+// app.get('/note/:id/comment', (req, res) => {
+//   const { id } = req.params;
+//   console.log(id);
+
+//   pool.query(listCommentQuery, (listErr, listRes) => {
+//     res.send(listRes);
+//   });
+// });
 
 /* ============ UPDATE / DELETE FORM =========== */
 
@@ -278,8 +323,17 @@ app.post('/login', (req, res) => {
 
     if (attemptPassword === realPassword) {
       console.log('yay correct pswd!');
-      res.cookie('loggedIn', true);
-      res.redirect(303, '/?user=login');
+
+      const findUserIdQuery = `SELECT id FROM users WHERE email='${attemptEmail}'`;
+
+      pool.query(findUserIdQuery, (userIdErr, userIdRes) => {
+        const userId = userIdRes.rows[0].id;
+
+        res.cookie('loggedIn', true);
+        res.cookie('userId', userId);
+
+        res.redirect(303, '/?user=login');
+      });
     } else {
       res.send('Whoops! Try again or contact your admin');
     }

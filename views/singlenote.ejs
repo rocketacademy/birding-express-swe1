@@ -11,7 +11,7 @@
   <body class="form">
     <%- include('../templates/header-user'); -%>
 
-    <div class="container-50">
+    <div class="container-grid container-50">
       <h1>Owl Sighting</h1>
       <div class="wrapper-50">
         <div class="photo-50">
@@ -44,6 +44,16 @@
             <span class="input"><%= location %> </span>
           </div>
         </div>
+      </div>
+
+      <div class="comments-div">
+        <form action="/note/:id" method="POST">
+          <div class="input-div">
+            <label for="comment">Comment</label>
+            <textarea name="comment" cols="30" rows="3"></textarea>
+          </div>
+          <button type="submit" value="comment" class="btn">Comment</button>
+        </form>
       </div>
     </div>
   </body>

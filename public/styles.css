@@ -384,10 +384,16 @@ body.form {
 }
 
 span.input,
-input {
+input,
+textarea {
   font-family: var(--monospace);
   font-size: 14px;
   color: var(--dark-green);
+}
+
+textarea {
+  resize: none;
+  padding: 8px;
 }
 
 input {
@@ -395,6 +401,14 @@ input {
   border: none;
   outline: none;
   border-bottom: solid 1px var(--dark-green);
+  padding: 8px 0 2px 0;
+}
+
+textarea {
+  margin: 8px 0 0 0;
+  background-color: var(--white);
+  border: solid 1px var(--dark-green);
+  outline: none;
   padding: 8px 0 2px 0;
 }
 
@@ -438,4 +452,11 @@ span.label {
   max-height: 62vh;
   background-size: contain;
   border: 2px solid var(--dark-green);
+}
+
+.comments-div {
+  color: var(--dark-green);
+  background-color: var(--dark-green-30);
+  padding: 24px;
+  margin: 32px 0;
 }
