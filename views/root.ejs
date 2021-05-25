@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+      integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T"
+      crossorigin="anonymous"
+    />
+    <title>All Notes</title>
+  </head>
+  <body>
+    <h1>All Notes</h1>
+    <form action="/login" method="GET">
+      <button type="submit">login</button>
+    </form>
+    <form action="/logout" method="POST">
+      <button type="submit">logout</button>
+    </form>
+    <div class="container">
+      <%let counter=1%> <%records.forEach((entry)=>{%>
+      <form class="row" action="/notes/<%=counter%>/comment">
+        <p class="col"><%=counter%></p>
+        <a class="col" href="/notes/<%=counter%>"
+          ><%=records[counter-1].name%></a
+        >
+        <p class="col"><%=records[counter-1].date%></p>
+        <button type="submit">Comment</button>
+      </form>
+      <%counter+=1%> <%})%>
+    </div>
+    <form action="/notes" method="GET">
+      <button type="submit">Add Note</button>
+    </form>
+  </body>
+</html>

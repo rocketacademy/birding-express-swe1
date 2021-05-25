@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+      integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T"
+      crossorigin="anonymous"
+    />
+    <title>Record Form</title>
+  </head>
+  <body>
+    <form action="/species" method="GET">
+      <button type="submit">Add species</button>
+    </form>
+    <div class="container">
+      <form action="/note" method="POST">
+        <div class="row">
+          <div class="col-4"><label for="birdName">Species</label></div>
+          <div class="col-6">
+            <select name="birdName">
+              <%Object.keys(species).forEach((element)=>{ console.log(element)%>
+              <option value="<%=element%>"><%=element%></option>
+              <%})%>
+            </select>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-4"><label for="date">Date</label></div>
+          <div class="col-6">
+            <input type="text" name="date" />
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-4"><label for="weather">Weather</label></div>
+          <div class="col-6">
+            <input type="text" name="weather" />
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-4"><label for="appearance">Appearance</label></div>
+          <div class="col-6">
+            <input type="text" name="appearance" />
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-4"><label for="behaviour">Behaviour</label></div>
+          <div class="col-6">
+            <%behaviour.forEach((element)=>{%>
+            <label><%=element.behaviour%></label>
+            <input
+              type="checkbox"
+              name="behaviour_id"
+              value="<%=element.id%>"
+            />
+            <%})%>
+          </div>
+        </div>
+        <input type="submit" value="Submit Record" />
+      </form>
+    </div>
+  </body>
+</html>
