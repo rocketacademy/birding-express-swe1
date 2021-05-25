@@ -28,7 +28,7 @@ export const allNotesController = (req, res) => {
           title: 'All Notes',
           instructions: 'Display all notes here',
           data: results.rows,
-          user: req.cookies.user,
+          user_id: req.cookies.user_id,
         });
     }
   });
@@ -36,10 +36,10 @@ export const allNotesController = (req, res) => {
 
 // NEW NOTE FORM
 export const createNoteController = (req, res) => {
-  if (!req.cookies.user) {
+  if (!req.cookies.user_id) {
     res.status(403).redirect('http://localhost:3000/login');
   }
-  res.status(200).render('homeViews/createNote', { user: req.cookies.user });
+  res.status(200).render('homeViews/createNote', { user_id: req.cookies.user_id });
 };
 
 // FORM POST CONTROLLER
@@ -48,9 +48,9 @@ export const postNoteController = async (req, res) => {
     // eslint-disable-next-line camelcase
     habitat, behaviour, flock_size, date,
   } = req.body;
-
+  const user = req.cookies.user_id;
   // eslint-disable-next-line camelcase
-  const values = [habitat, behaviour, flock_size, date];
+  const values = [habitat, behaviour, flock_size, date, user];
 
   // poolQueries(query, values, (err, result) => {
   //   if (err) {
@@ -67,9 +67,9 @@ export const postNoteController = async (req, res) => {
 
   // TRIED ASYNC AWAIT BUT STILL SAME ERR
 
-  const { rows } = await pool.query('INSERT INTO notes (habitat,behaviour,flock_size,date) VALUES ($1, $2, $3, $4) RETURNING *', values);
+  const { rows } = await pool.query('INSERT INTO notes (habitat,behaviour,flock_size,date, user_id) VALUES ($1, $2, $3, $4, $5) RETURNING *', values);
   console.log(rows);
-  res.redirect('/note/all');
+  res.redirect('/profile');
   // res.status(200).render('noteViews/singleNote',
   //   {
   //     title: 'Single Note',
@@ -111,7 +111,7 @@ export const singleNoteController = async (req, res) => {
       title: 'Single Note',
       instructions: 'To render a single note here',
       data: rows,
-      user: req.cookies.user,
+      user_id: req.cookies.user_id,
     });
 };
 
@@ -131,11 +131,12 @@ export const editNoteController = async (req, res) => {
   //   console.log(`ERROR FROM editNoteController -->> ${err}`);
   // });
   const { rows } = await pool.query('select * from notes where id=$1', [id]);
+  console.log(`this is id -->> ${id}`);
   console.log(rows);
 
   res.render('noteViews/editNote', {
     data: rows,
-    user: req.cookies.user,
+    user_id: req.cookies.user_id,
   });
 };
 
@@ -153,7 +154,7 @@ export const postEditNoteController = (req, res) => {
       console.log(`ERROR FROM postEditNoteController -->> ${err}`);
     } else {
       console.log(results.rows);
-      res.redirect('/note/all');
+      res.redirect('/profile');
     }
   });
 };
@@ -178,7 +179,7 @@ export const confirmDelete = (req, res) => {
     if (err) {
       console.log(`ERROR FROM confirmDelete -->> ${err}`);
     } else {
-      res.redirect('/note/all');
+      res.redirect('/profile');
     }
   });
 };

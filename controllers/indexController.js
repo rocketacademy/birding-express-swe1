@@ -6,7 +6,7 @@ export const homeController = (req, res) => {
     title: 'Bird Watching',
     page: 'home',
     desc: 'This is the home page where is set up a welcome page with links to other home pages',
-    user: req.cookies.user,
+    user_id: req.cookies.user_id,
 
   });
 };
@@ -15,7 +15,7 @@ export const aboutController = (req, res) => {
     title: 'Bird Watching',
     page: 'about',
     desc: 'This is the about page where is set up a welcome page with links to other home pages',
-    user: req.cookies.user,
+    user_id: req.cookies.user_id,
 
   });
 };
@@ -24,14 +24,14 @@ export const loginController = (req, res) => {
   res.status(200).render('homeViews/login',
     {
       title: 'Login',
-      user: req.cookies.user,
+      user_id: req.cookies.user_id,
     });
 };
 export const signUpController = (req, res) => {
   res.status(200).render('homeViews/signUp',
     {
       title: 'Sign Up',
-      user: req.cookies.user,
+      user_id: req.cookies.user_id,
     });
 };
 
@@ -53,14 +53,15 @@ export const postLoginController = (req, res) => {
       // res.redirect('/signUp');
       res.render('homeViews/signUp', { title: 'Sign Up', errMsg: 'We could not find you. Create a new account!' });
     } else {
-      const { email, password } = results.rows[0];
+      const { id, password, email } = results.rows[0];
       // Hash and salt
       // eslint-disable-next-line new-cap
       const shaObj = new jsSHA('SHA-512', 'TEXT', { encoding: 'UTF8' });
       shaObj.update(userPassword);
       const hash = shaObj.getHash('HEX');
       if (password === hash) {
-        res.cookie('user', 'zaffere');
+        res.cookie('user_id', id);
+        res.cookie('user_email', email);
         res.redirect('/profile');
       } else {
         res.redirect('/signUp');
@@ -106,15 +107,21 @@ export const postSignUpController = async (req, res) => {
   // save user then redirect to home
 };
 
-export const profileController = (req, res) => {
+export const profileController = async (req, res) => {
+  const { user_id } = req.cookies;
+  const { rows } = await pool.query(`SELECT * FROM notes WHERE user_id=${user_id}`);
+
   res.render('user/userProfile', {
     title: 'Profile',
-    user: req.cookies.user,
+    user_id: req.cookies.user_id,
+    user_email: req.cookies.user_email,
+    notes: rows,
 
   });
 };
 
 export const postLogoutController = (req, res) => {
-  res.clearCookie('user');
+  res.clearCookie('user_id');
+  res.clearCookie('user_email');
   res.redirect('/');
 };

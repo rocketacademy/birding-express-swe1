@@ -15,6 +15,7 @@
       integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l"
       crossorigin="anonymous"
     />
+    <link rel="stylesheet" href="/style.css" />
 
     <title>Bird Watching</title>
   </head>
@@ -59,12 +60,16 @@
                   <a class="nav-link" href="/note/create">Add a Note</a>
                 </li>
 
-                <% if (typeof user === 'string' && user) { %>
+                <% if (typeof user_id === 'string' && user_id) { %>
+                <li class="nav-item">
+                  <a class="nav-link" href="/profile">Profile</a>
+                </li>
                 <li>
                   <form action="/logout" method="POST">
                     <input type="submit" value="log out" name="logout" id="" />
                   </form>
                 </li>
+
                 <% } else { %>
                 <li class="nav-item">
                   <a class="nav-link" href="/login">Log In</a>
