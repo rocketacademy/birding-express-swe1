@@ -19,5 +19,3 @@ CREATE TABLE note_behaviour (note_id INTEGER, behaviour_id INTEGER);
 
 -- command to run this file: psql -f <PATH_TO_FILE> OR \i <PATH_TO_FILE>
 -- \i /home/eddiejpot/rocket-academy/bootcamp/projects/course-projects/bird-watching/sql/init-tables.sql
-
--- psql -f /home/eddiejpot/rocket-academy/bootcamp/projects/course-projects/bird-watching/sql/init-tables.sql -b birding

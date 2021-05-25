@@ -37,3 +37,8 @@ INSERT INTO note_behaviour (note_id, behaviour_id) VALUES (2, 8);
 
 -- command to run this file: psql -f <PATH_TO_FILE> OR \i <PATH_TO_FILE>
 -- \i /home/eddiejpot/rocket-academy/bootcamp/projects/course-projects/bird-watching/sql/bird-data.sql
+
+
+SELECT behaviours.name FROM note_behaviour INNER JOIN behaviours ON behaviours.id = note_behaviour.behaviour_id WHERE note_behaviour.note_id = 1;
+
+SELECT note_behaviour.behaviour_id FROM behaviours INNER JOIN note_behaviour ON note_behaviour.behaviour_id = behaviours.id WHERE note_behaviour.note_id = 1;

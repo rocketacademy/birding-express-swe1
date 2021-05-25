@@ -7,3 +7,7 @@ SELECT * FROM species;
 SELECT * FROM behaviours;
 SELECT * FROM notes;
 SELECT * FROM note_behaviour; 
+
+
+SELECT * FROM notes;
+SELECT * FROM note_behaviour; 
