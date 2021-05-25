@@ -1,15 +1,12 @@
 /* eslint-disable no-underscore-dangle */
 import express from 'express';
 import cookieParser from 'cookie-parser';
-import path from 'path';
 
 import {} from 'dotenv/config';
 
 // APP ROUTERS
 import indexRouter from './routes/indexRouter.js';
 import noteRouter from './routes/noteRouter.js';
-
-const __dirname = path.resolve('.');
 
 // INITIALISING THE SERVER
 const app = express();

@@ -95,20 +95,17 @@ export const postSignUpController = async (req, res) => {
         console.log(`ERROR FROM postSignUpController -->> ${err}`);
       }
       console.log(`here -->> ${results}`);
-      const userResult = results.rows;
       res.cookie('user', 'zaffere');
       res.redirect('/profile');
-      // res.render('user/userProfile',
-      //   {
-      //     userEmail: 'userResult.email',
-      //   });
     });
   }
   // save user then redirect to home
 };
 
 export const profileController = async (req, res) => {
+  // eslint-disable-next-line camelcase
   const { user_id } = req.cookies;
+  // eslint-disable-next-line camelcase
   const { rows } = await pool.query(`SELECT * FROM notes WHERE user_id=${user_id}`);
 
   res.render('user/userProfile', {

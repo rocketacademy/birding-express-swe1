@@ -82,7 +82,6 @@ export const postNoteController = async (req, res) => {
 export const singleNoteController = async (req, res) => {
   const { id } = req.params;
   console.log(`FROM singleNoteController ID -->> ${req.params.id}`);
-  const sqlQuery = 'SELECT * FROM notes WHERE id=$1';
 
   // ERROR IS THAT PG IS QUERYING X2 AND THE SECOND TIME WITH ID=INDEX.JS
 
@@ -175,6 +174,7 @@ export const deleteNoteController = (req, res) => {
 
 export const confirmDelete = (req, res) => {
   const { id } = req.params;
+  // eslint-disable-next-line no-unused-vars
   pool.query(`DELETE FROM notes WHERE id=${id} RETURNING *`, (err, results) => {
     if (err) {
       console.log(`ERROR FROM confirmDelete -->> ${err}`);
